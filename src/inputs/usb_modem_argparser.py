@@ -1,8 +1,9 @@
 #!/usr/bin/python3
-#-*- encoding: Utf-8 -*-
+# -*- encoding: Utf-8 -*-
 from typing import Optional, Union, Dict, List, Sequence, Set, Any
 from re import match, Match, IGNORECASE
 from enum import IntEnum
+
 
 class UsbModemArgType(IntEnum):
     pyserial_dev = 1
@@ -12,46 +13,46 @@ class UsbModemArgType(IntEnum):
     pyusb_bus_device_cfg_intf = 5
     pyusb_auto = 6
 
+
 USB_ARG_REGEX_TO_MODE = {
-    r'COM\d+|/dev.+': UsbModemArgType.pyserial_dev,
-    r'([0-9a-f]{4}):([0-9a-f]{4})': UsbModemArgType.pyusb_vid_pid,
-    r'([0-9a-f]{4}):([0-9a-f]{4}):(\d+):(\d+)': UsbModemArgType.pyusb_vid_pid_cfg_intf,
-    r'([0-9]{3}):([0-9]{3})': UsbModemArgType.pyusb_bus_device,
-    r'([0-9]{3}):([0-9]{3}):(\d+):(\d+)': UsbModemArgType.pyusb_bus_device_cfg_intf,
-    'auto': UsbModemArgType.pyusb_auto
+    r"COM\d+|/dev.+": UsbModemArgType.pyserial_dev,
+    r"([0-9a-f]{4}):([0-9a-f]{4})": UsbModemArgType.pyusb_vid_pid,
+    r"([0-9a-f]{4}):([0-9a-f]{4}):(\d+):(\d+)": UsbModemArgType.pyusb_vid_pid_cfg_intf,
+    r"([0-9]{3}):([0-9]{3})": UsbModemArgType.pyusb_bus_device,
+    r"([0-9]{3}):([0-9]{3}):(\d+):(\d+)": UsbModemArgType.pyusb_bus_device_cfg_intf,
+    "auto": UsbModemArgType.pyusb_auto,
 }
 
+
 class UsbModemArgParser:
+    arg_type: UsbModemArgType = None
 
-    arg_type : UsbModemArgType = None
+    pyserial_device: Optional[str] = None
 
-    pyserial_device : Optional[str] = None
+    pyusb_vid: Optional[int] = None
+    pyusb_pid: Optional[int] = None
+    pyusb_bus: Optional[int] = None
+    pyusb_device: Optional[int] = None
+    pyusb_cfg: Optional[int] = None
+    pyusb_intf: Optional[int] = None
+    pyusb_auto: bool = False
 
-    pyusb_vid : Optional[int] = None
-    pyusb_pid : Optional[int] = None
-    pyusb_bus : Optional[int] = None
-    pyusb_device : Optional[int] = None
-    pyusb_cfg : Optional[int] = None
-    pyusb_intf : Optional[int] = None
-    pyusb_auto : bool = False
-
-    def __init__(self, arg : str):
-
+    def __init__(self, arg: str):
         """
         if arg.startswith('COM') or arg.startswith('/dev'):
             self.arg_type = UsbModemArgType.pyserial_dev
             self.pyserial_device = arg
         """
 
-        regex_result : Optional[Match] = None
-        syntax_type : Optional[UsbModemArgType] = None
+        regex_result: Optional[Match] = None
+        syntax_type: Optional[UsbModemArgType] = None
 
         for possible_syntax, arg_type in USB_ARG_REGEX_TO_MODE.items():
-            regex_result = match('^' + possible_syntax + '$', arg, flags = IGNORECASE)
+            regex_result = match("^" + possible_syntax + "$", arg, flags=IGNORECASE)
             if regex_result:
                 syntax_type = arg_type
                 break
-        
+
         if syntax_type:
             self.arg_type = syntax_type
 

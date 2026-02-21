@@ -9,72 +9,105 @@ from struct import pack, unpack
 GSMTAP_PORT = 4729
 NR_RRC_UDP_PORT = 47928
 
+
 def build_gsmtap_ip(gsmtap_protocol, gsmtap_channel_type, payload, is_uplink):
-    
-    packet = pack('>BBBxHxx4xBxxx',
-        2, # GSMTAP version
-        4, # Header words
-        gsmtap_protocol,
-        int(is_uplink) << 14,
-        gsmtap_channel_type
-    ) + payload
-    
-    # UDP:
-    
-    packet = pack('>HHHH',
-        GSMTAP_PORT, # From GSMTAP UDP port
-        GSMTAP_PORT, # To GSMTAP UDP port
-        len(packet) + 8, # Total length
-        0 # Ignore checksum
-    ) + packet
-    
-    # IP:
-    
-    return pack('>BBHHHBBH8B',
-        (4 << 4) | 5, # IPv4 version and header words
-        0, # DSCP
-        len(packet) + 20, # Total length
-        0, # Identification
-        0, # Fragment offset
-        64, # Time to live
-        17, # Protocol: UDP
-        0, # Ignore checksum
-        0,0,0,0, # From 0.0.0.0
-        0,0,0,0, # To 0.0.0.0
-    ) + packet
 
-def build_nr_rrc_log_ip(log_payload : bytes):
+    packet = (
+        pack(
+            ">BBBxHxx4xBxxx",
+            2,  # GSMTAP version
+            4,  # Header words
+            gsmtap_protocol,
+            int(is_uplink) << 14,
+            gsmtap_channel_type,
+        )
+        + payload
+    )
 
     # UDP:
 
-    packet = pack('>HHHH',
-        NR_RRC_UDP_PORT, # From custom QCSuper plug-in UDP port
-        NR_RRC_UDP_PORT, # To custom QCSuper plug-in UDP port
-        len(log_payload) + 8, # Total length
-        0 # Ignore checksum
-    ) + log_payload
-    
-    # IP:
-    
-    return pack('>BBHHHBBH8B',
-        (4 << 4) | 5, # IPv4 version and header words
-        0, # DSCP
-        len(packet) + 20, # Total length
-        0, # Identification
-        0, # Fragment offset
-        64, # Time to live
-        17, # Protocol: UDP
-        0, # Ignore checksum
-        0,0,0,0, # From 0.0.0.0
-        0,0,0,0, # To 0.0.0.0
-    ) + packet
+    packet = (
+        pack(
+            ">HHHH",
+            GSMTAP_PORT,  # From GSMTAP UDP port
+            GSMTAP_PORT,  # To GSMTAP UDP port
+            len(packet) + 8,  # Total length
+            0,  # Ignore checksum
+        )
+        + packet
+    )
 
+    # IP:
+
+    return (
+        pack(
+            ">BBHHHBBH8B",
+            (4 << 4) | 5,  # IPv4 version and header words
+            0,  # DSCP
+            len(packet) + 20,  # Total length
+            0,  # Identification
+            0,  # Fragment offset
+            64,  # Time to live
+            17,  # Protocol: UDP
+            0,  # Ignore checksum
+            0,
+            0,
+            0,
+            0,  # From 0.0.0.0
+            0,
+            0,
+            0,
+            0,  # To 0.0.0.0
+        )
+        + packet
+    )
+
+
+def build_nr_rrc_log_ip(log_payload: bytes):
+
+    # UDP:
+
+    packet = (
+        pack(
+            ">HHHH",
+            NR_RRC_UDP_PORT,  # From custom QCSuper plug-in UDP port
+            NR_RRC_UDP_PORT,  # To custom QCSuper plug-in UDP port
+            len(log_payload) + 8,  # Total length
+            0,  # Ignore checksum
+        )
+        + log_payload
+    )
+
+    # IP:
+
+    return (
+        pack(
+            ">BBHHHBBH8B",
+            (4 << 4) | 5,  # IPv4 version and header words
+            0,  # DSCP
+            len(packet) + 20,  # Total length
+            0,  # Identification
+            0,  # Fragment offset
+            64,  # Time to live
+            17,  # Protocol: UDP
+            0,  # Ignore checksum
+            0,
+            0,
+            0,
+            0,  # From 0.0.0.0
+            0,
+            0,
+            0,
+            0,  # To 0.0.0.0
+        )
+        + packet
+    )
 
 
 GSMTAP_TYPE_UM = 0x01
 GSMTAP_TYPE_ABIS = 0x02
-GSMTAP_TYPE_UMTS_RRC = 0x0c
-GSMTAP_TYPE_LTE_RRC = 0x0d
+GSMTAP_TYPE_UMTS_RRC = 0x0C
+GSMTAP_TYPE_LTE_RRC = 0x0D
 GSMTAP_TYPE_LTE_NAS = 0x12
 
 GSMTAP_CHANNEL_UNKNOWN = 0x00
@@ -87,14 +120,14 @@ GSMTAP_CHANNEL_SDCCH = 0x06
 GSMTAP_CHANNEL_SDCCH4 = 0x07
 GSMTAP_CHANNEL_SDCCH8 = 0x08
 GSMTAP_CHANNEL_TCH_F = 0x09
-GSMTAP_CHANNEL_TCH_H = 0x0a
-GSMTAP_CHANNEL_PACCH = 0x0b
-GSMTAP_CHANNEL_CBCH52 = 0x0c
-GSMTAP_CHANNEL_PDTCH = 0x0d
-GSMTAP_CHANNEL_PTCCH = 0x0e
-GSMTAP_CHANNEL_CBCH51 = 0x0f
+GSMTAP_CHANNEL_TCH_H = 0x0A
+GSMTAP_CHANNEL_PACCH = 0x0B
+GSMTAP_CHANNEL_CBCH52 = 0x0C
+GSMTAP_CHANNEL_PDTCH = 0x0D
+GSMTAP_CHANNEL_PTCCH = 0x0E
+GSMTAP_CHANNEL_CBCH51 = 0x0F
 
-GSMTAP_CHANNEL_ACCH = 0x80 # To be combined, ACCH + SDCCH = SACCH
+GSMTAP_CHANNEL_ACCH = 0x80  # To be combined, ACCH + SDCCH = SACCH
 
 GSMTAP_RRC_SUB_DL_DCCH_Message = 0
 GSMTAP_RRC_SUB_UL_DCCH_Message = 1

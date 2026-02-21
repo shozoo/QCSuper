@@ -1,15 +1,15 @@
 #!/usr/bin/python3
-#-*- encoding: Utf-8 -*-
+# -*- encoding: Utf-8 -*-
 
 """
-    This file enumerates DIAG log types, used in DIAG_LOG_F packets.
+This file enumerates DIAG log types, used in DIAG_LOG_F packets.
 """
 
 """
     These are 2G-related log types.
 """
 
-LOG_GSM_RR_SIGNALING_MESSAGE_C = 0x512f
+LOG_GSM_RR_SIGNALING_MESSAGE_C = 0x512F
 
 DCCH = 0x00
 BCCH = 0x01
@@ -37,17 +37,17 @@ PACKET_CHANNEL_REQUEST = 0x20
     These are 5G-related log types.
 """
 
-LOG_NR_RRC_OTA_MSG_LOG_C = 0xb821
+LOG_NR_RRC_OTA_MSG_LOG_C = 0xB821
 
 """
     These are 4G-related log types.
 """
 
-LOG_LTE_RRC_OTA_MSG_LOG_C = 0xb0c0
-LOG_LTE_NAS_ESM_OTA_IN_MSG_LOG_C = 0xb0e2
-LOG_LTE_NAS_ESM_OTA_OUT_MSG_LOG_C = 0xb0e3
-LOG_LTE_NAS_EMM_OTA_IN_MSG_LOG_C = 0xb0ec
-LOG_LTE_NAS_EMM_OTA_OUT_MSG_LOG_C = 0xb0ed
+LOG_LTE_RRC_OTA_MSG_LOG_C = 0xB0C0
+LOG_LTE_NAS_ESM_OTA_IN_MSG_LOG_C = 0xB0E2
+LOG_LTE_NAS_ESM_OTA_OUT_MSG_LOG_C = 0xB0E3
+LOG_LTE_NAS_EMM_OTA_IN_MSG_LOG_C = 0xB0EC
+LOG_LTE_NAS_EMM_OTA_OUT_MSG_LOG_C = 0xB0ED
 
 LTE_BCCH_BCH_v0 = 1
 LTE_BCCH_DL_SCH_v0 = 2
@@ -114,16 +114,13 @@ RRCLOG_SIB_CONTAINER = 10
     3G layer 3 packets:
 """
 
-WCDMA_SIGNALLING_MESSAGE = 0x412f
+WCDMA_SIGNALLING_MESSAGE = 0x412F
 
 
 """
     Upper layers
 """
 
-LOG_DATA_PROTOCOL_LOGGING_C = 0x11eb
+LOG_DATA_PROTOCOL_LOGGING_C = 0x11EB
 
-LOG_UMTS_NAS_OTA_MESSAGE_LOG_PACKET_C = 0x713a
-
-
-
+LOG_UMTS_NAS_OTA_MESSAGE_LOG_PACKET_C = 0x713A

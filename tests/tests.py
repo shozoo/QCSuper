@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-#-*- encoding: Utf-8 -*-
+# -*- encoding: Utf-8 -*-
 from unittest import main, TestLoader, TextTestRunner
 
 """
@@ -7,8 +7,9 @@ from unittest import main, TestLoader, TextTestRunner
 """
 
 loader = TestLoader()
-runner = TextTestRunner(verbosity = 2)
+runner = TextTestRunner(verbosity=2)
 
 import tests_usbmodem_argparser
+
 suite = loader.loadTestsFromModule(tests_usbmodem_argparser)
 runner.run(suite)
