@@ -21,7 +21,6 @@ classifiers = [
     "Topic :: System :: Networking",
     "Topic :: Communications :: Telephony",
     "Topic :: Security",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Environment :: Console"
 ]
 dependencies = [
