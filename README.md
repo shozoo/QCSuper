@@ -411,9 +411,11 @@ QCSuper was successfully tested with:
 * Samsung Galaxy S4 GT-I9505 (Phone)
 * Virtual Access GW1150 - using TCP connection
 * Westermo Merlin 4600 - using TCP connection
-* Fairphone 5 - [see full guide](https://github.com/Doct2O/fairphone5/tree/main/radio/cellular/qualcomm-diagnostic-mode)
+* Fairphone 5 - [see **full guide**](https://github.com/Doct2O/fairphone5/tree/main/radio/cellular/qualcomm-diagnostic-mode)
 
 Is it however aiming to be compatible with the widest possible range of devices based on a Qualcomm chipset, for the capture part.
+
+Other working devices are listed at: https://github.com/P1sec/QCSuper/issues?q=label:"confirmed+working"
 
 Do no hesitate to report whether your device is successfully working or not through opening a [Github issue](https://github.com/P1sec/QCSuper/issues/new).
 
