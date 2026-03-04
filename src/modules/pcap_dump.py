@@ -64,7 +64,7 @@ class PcapDumper(DecodedSibsDumper):
                     4,  # Version
                     0,  # Timezone
                     65535,  # Max packet length
-                    228,  # LINKTYPE_IPV4 (for GSMTAP)
+                    101,  # LINKTYPE_RAW (IPv4/IPv6 auto-detect)
                 )
             )
 
