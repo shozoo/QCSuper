@@ -59,8 +59,12 @@ TYPES_FOR_RAW_PACKET_LOGGING = [
     LOG_LTE_NAS_ESM_OTA_OUT_MSG_LOG_C,  # 0xb0e3
     LOG_LTE_NAS_EMM_OTA_IN_MSG_LOG_C,  # 0xb0ec
     LOG_LTE_NAS_EMM_OTA_OUT_MSG_LOG_C,  # 0xb0ed
-    # User IP traffic:
+    # User IP traffic (DPL):
+    # Data arrives on 0x11EB, but registering the extended Network IP codes
+    # is required to trigger DPL delivery on some basebands.
     LOG_DATA_PROTOCOL_LOGGING_C,  # 0x11eb
+    LOG_DATA_PROTOCOL_LOGGING_NETWORK_IP_RM_TX_FULL_C,  # 0x1574
+    LOG_DATA_PROTOCOL_LOGGING_NETWORK_IP_RM_RX_FULL_C,  # 0x1575
 ]
 
 
