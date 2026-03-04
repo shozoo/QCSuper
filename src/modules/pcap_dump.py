@@ -10,7 +10,7 @@ from logging import warning, debug
 from sys import platform
 import gzip
 
-from ..modules._enable_log_mixin import EnableLogMixin, TYPES_FOR_RAW_PACKET_LOGGING
+from ..modules._enable_log_mixin import EnableLogMixin, TYPES_FOR_RAW_PACKET_LOGGING, TYPES_FOR_IP_TRAFFIC_LOGGING
 from ..modules.decoded_sibs_dump import DecodedSibsDumper
 
 MODULES_DIR = realpath(dirname(__file__))
@@ -70,7 +70,9 @@ class PcapDumper(DecodedSibsDumper):
 
         self.diag_input = diag_input
 
-        self.limit_registered_logs = TYPES_FOR_RAW_PACKET_LOGGING
+        self.limit_registered_logs = list(TYPES_FOR_RAW_PACKET_LOGGING)
+        if include_ip_traffic:
+            self.limit_registered_logs += TYPES_FOR_IP_TRAFFIC_LOGGING
 
         self.current_rat = None  # Radio access technology: "2g", "3g", "4g", "5g"
 
