@@ -6,11 +6,11 @@ from os.path import expandvars, dirname, realpath
 from os import makedirs, getenv, listdir
 from traceback import print_exc
 from shutil import copy2, which
-from logging import warning
+from logging import warning, debug
 from sys import platform
 import gzip
 
-from ..modules._enable_log_mixin import EnableLogMixin, TYPES_FOR_RAW_PACKET_LOGGING
+from ..modules._enable_log_mixin import EnableLogMixin, TYPES_FOR_RAW_PACKET_LOGGING, TYPES_FOR_IP_TRAFFIC_LOGGING
 from ..modules.decoded_sibs_dump import DecodedSibsDumper
 
 MODULES_DIR = realpath(dirname(__file__))
@@ -37,6 +37,12 @@ from ..protocol.gsmtap import *
     the QCSuper Wireshark plugin is installed or loaded.
 """
 
+_DPL_LOG_TYPES = {
+    LOG_DATA_PROTOCOL_LOGGING_C,
+    LOG_DATA_PROTOCOL_LOGGING_NETWORK_IP_RM_TX_FULL_C,
+    LOG_DATA_PROTOCOL_LOGGING_NETWORK_IP_RM_RX_FULL_C,
+}
+
 
 class PcapDumper(DecodedSibsDumper):
     def __init__(
@@ -58,15 +64,29 @@ class PcapDumper(DecodedSibsDumper):
                     4,  # Version
                     0,  # Timezone
                     65535,  # Max packet length
-                    228,  # LINKTYPE_IPV4 (for GSMTAP)
+                    101,  # LINKTYPE_RAW (IPv4/IPv6 auto-detect)
                 )
             )
 
         self.diag_input = diag_input
 
-        self.limit_registered_logs = TYPES_FOR_RAW_PACKET_LOGGING
+        self.limit_registered_logs = list(TYPES_FOR_RAW_PACKET_LOGGING)
+        if include_ip_traffic:
+            self.limit_registered_logs += TYPES_FOR_IP_TRAFFIC_LOGGING
 
         self.current_rat = None  # Radio access technology: "2g", "3g", "4g", "5g"
+
+        # Per-IFname DPL fragment reassembly state.
+        # Keyed by IFname (DPL header bytes[2:3]); each value holds
+        # [reassembly_buf, reassembly_seq, reassembly_ts].
+        # Separate buffers are needed because fragments from different
+        # IFnames can interleave.
+        self._dpl_reassembly = {}
+
+        # Content-based dedup: the same IP packet may be delivered from
+        # multiple DPL IFnames (capture points inside the baseband data path).
+        # We keep hashes of recently written packets to suppress duplicates.
+        self._dpl_seen_hashes = []
 
         self.reassemble_sibs = reassemble_sibs
         self.decrypt_nas = decrypt_nas
@@ -429,10 +449,91 @@ class PcapDumper(DecodedSibsDumper):
                 GSMTAP_TYPE_LTE_NAS, GSMTAP_LTE_NAS_PLAIN, signalling_message, is_uplink
             )
 
-        elif (
-            self.include_ip_traffic and log_type == LOG_DATA_PROTOCOL_LOGGING_C
-        ):  # 0x11eb - IPv4 user-plane data
-            packet = log_payload[8:]
+        elif self.include_ip_traffic and log_type in _DPL_LOG_TYPES:  # DPL user-plane data
+            # DPL header (8 bytes):
+            #   [0-1] version/flags
+            #   [2-3] IFname (DPL capture point inside the baseband)
+            #   [4]   sequence number (per-IFname, wraps at 0xff)
+            #   [5]   type field
+            #   [6]   fragment index (0 = first fragment)
+            #   [7]   flags (0x80 = last fragment)
+
+            if len(log_payload) < 8:
+                return
+
+            ifname = (log_payload[2] << 8) | log_payload[3]
+            seq_num = log_payload[4]
+            frag_index = log_payload[6]
+            is_last = bool(log_payload[7] & 0x80)
+            data = log_payload[8:]
+
+            # Per-IFname fragment reassembly
+            st = self._dpl_reassembly.get(ifname)
+            if st is None:
+                st = [bytearray(), None, 0]
+                self._dpl_reassembly[ifname] = st
+
+            if frag_index == 0:
+                st[0] = bytearray(data)
+                st[1] = seq_num
+                st[2] = timestamp
+            elif seq_num == st[1]:
+                st[0].extend(data)
+            else:
+                debug(
+                    "[DPL] Out-of-sequence fragment (ifname=0x%04x, seq=0x%02x, expected=0x%02x), dropping"
+                    % (ifname, seq_num, st[1] if st[1] is not None else -1)
+                )
+                st[0] = bytearray()
+                st[1] = None
+                return
+
+            if not is_last:
+                return  # More fragments expected
+
+            # Reassembly complete
+            packet = bytes(st[0])
+            timestamp = st[2]
+            st[0] = bytearray()
+            st[1] = None
+
+            if len(packet) < 1:
+                return
+
+            # Validate and trim to IP total length (DPL may pad the last fragment)
+            ip_version = (packet[0] >> 4) & 0xF
+            if ip_version == 4 and len(packet) >= 20:
+                ip_total_len = (packet[2] << 8) | packet[3]
+                if 20 <= ip_total_len <= len(packet):
+                    packet = packet[:ip_total_len]
+            elif ip_version == 6 and len(packet) >= 40:
+                ip_payload_len = (packet[4] << 8) | packet[5]
+                ip_total_len = ip_payload_len + 40
+                if ip_total_len <= len(packet):
+                    packet = packet[:ip_total_len]
+            else:
+                debug(
+                    "[DPL] Reassembled packet not valid IP (first_byte=0x%02x)"
+                    % packet[0]
+                )
+                return
+
+            # Content-based dedup: the same IP packet is delivered from
+            # multiple DPL IFnames (capture points). Suppress duplicates
+            # only when the same content arrives from a *different* IFname;
+            # same content from the same IFname is a genuine retransmission.
+            pkt_hash = hash(packet)
+            for seen_hash, seen_ifname in self._dpl_seen_hashes:
+                if seen_hash == pkt_hash and seen_ifname != ifname:
+                    return  # Duplicate from another capture point
+            self._dpl_seen_hashes.append((pkt_hash, ifname))
+            if len(self._dpl_seen_hashes) > 32:
+                del self._dpl_seen_hashes[:16]
+
+            debug(
+                "[DPL] IPv%d packet: %d bytes (ifname=0x%04x)"
+                % (ip_version, len(packet), ifname)
+            )
 
         elif (
             log_type == LOG_UMTS_NAS_OTA_MESSAGE_LOG_PACKET_C
