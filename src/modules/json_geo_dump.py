@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-#-*- encoding: Utf-8 -*-
+# -*- encoding: Utf-8 -*-
 from ..protocol.gsmtap import build_gsmtap_ip
 from ..protocol.log_types import *
 from struct import pack, unpack
@@ -23,51 +23,51 @@ from ._enable_log_mixin import EnableLogMixin, TYPES_FOR_RAW_PACKET_LOGGING
     This module is meant to be used with the "ADB" input.
 """
 
-DELAY_CHECK_GEOLOCATION = 10 # Check GPS location every 10 seconds
+DELAY_CHECK_GEOLOCATION = 10  # Check GPS location every 10 seconds
+
 
 class JsonGeoDumper(EnableLogMixin):
-    
     def __init__(self, diag_input, json_geo_file):
-        
+
         self.json_geo_file = json_geo_file
-        
+
         self.diag_input = diag_input
-        
+
         self.limit_registered_logs = TYPES_FOR_RAW_PACKET_LOGGING
-        
+
         self.last_time_geolocation_was_checked = 0
         self.lat, self.lng = None, None
-    
-    def on_log(self, log_type, log_payload, log_header, timestamp = 0):
-        
-        if hasattr(self.diag_input, 'get_gps_location'):
-            
-            if self.last_time_geolocation_was_checked < time() - DELAY_CHECK_GEOLOCATION:
-                
+
+    def on_log(self, log_type, log_payload, log_header, timestamp=0):
+
+        if hasattr(self.diag_input, "get_gps_location"):
+            if (
+                self.last_time_geolocation_was_checked
+                < time() - DELAY_CHECK_GEOLOCATION
+            ):
                 lat, lng = self.diag_input.get_gps_location()
-                
+
                 if lat and lng and (lat, lng) != (self.lat, self.lng):
-            
-                    json_record = dumps({
-                        'lat': lat,
-                        'lng': lng,
-                        'timestamp': time()
-                    }, sort_keys = True)
-                    
-                    self.json_geo_file.write(json_record + '\n')
-                
+                    json_record = dumps(
+                        {"lat": lat, "lng": lng, "timestamp": time()}, sort_keys=True
+                    )
+
+                    self.json_geo_file.write(json_record + "\n")
+
                 self.last_time_geolocation_was_checked = time()
-        
+
         if log_type in TYPES_FOR_RAW_PACKET_LOGGING:
-    
-            json_record = dumps({
-                'log_type': log_type,
-                'log_frame': b64encode(log_header + log_payload).decode('ascii'),
-                'timestamp': time()
-            }, sort_keys = True)
-            
-            self.json_geo_file.write(json_record + '\n')
-    
+            json_record = dumps(
+                {
+                    "log_type": log_type,
+                    "log_frame": b64encode(log_header + log_payload).decode("ascii"),
+                    "timestamp": time(),
+                },
+                sort_keys=True,
+            )
+
+            self.json_geo_file.write(json_record + "\n")
+
     def __del__(self):
-        
+
         self.json_geo_file.close()

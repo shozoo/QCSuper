@@ -1,9 +1,9 @@
 #!/usr/bin/python3
-#-*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 
 """
-    This files contains a list of the Diag subsystem IDs,
-    as it can be found in other open-source projects.
+This files contains a list of the Diag subsystem IDs,
+as it can be found in other open-source projects.
 """
 
 # Subsystem IDs
@@ -90,13 +90,13 @@ DIAG_SUBSYS_COREBSP = 75
 DIAG_SUBSYS_MFLO2 = 76
 DIAG_SUBSYS_ULOG = 77
 DIAG_SUBSYS_APR = 78
-DIAG_SUBSYS_QNP = 79 
-DIAG_SUBSYS_STRIDE = 80 
-DIAG_SUBSYS_OEMDPP = 81 
-DIAG_SUBSYS_Q5_CORE = 82 
-DIAG_SUBSYS_USCRIPT = 83 
-DIAG_SUBSYS_NAS = 84 
-DIAG_SUBSYS_CMAPI = 85 
+DIAG_SUBSYS_QNP = 79
+DIAG_SUBSYS_STRIDE = 80
+DIAG_SUBSYS_OEMDPP = 81
+DIAG_SUBSYS_Q5_CORE = 82
+DIAG_SUBSYS_USCRIPT = 83
+DIAG_SUBSYS_NAS = 84
+DIAG_SUBSYS_CMAPI = 85
 DIAG_SUBSYS_SSM = 86
 DIAG_SUBSYS_TDSCDMA = 87
 DIAG_SUBSYS_SSM_TEST = 88

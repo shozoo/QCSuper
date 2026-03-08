@@ -1,9 +1,9 @@
 #!/usr/bin/python3
-#-*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 
 """
-    This files contains a list of the Diag protocol commands,
-    as it can be found in other open-source projects.
+This files contains a list of the Diag protocol commands,
+as it can be found in other open-source projects.
 """
 
 DIAG_VERNO_F = 0
