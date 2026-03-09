@@ -272,10 +272,7 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
                 exit()
 
             try:
-                unframed_message = self.hdlc_decapsulate(
-                    payload=raw_payload,
-                    raise_on_invalid_frame=not self.received_first_packet,
-                )
+                unframed_message = self.hdlc_decapsulate(payload=raw_payload)
 
             except self.InvalidFrameError:
                 # The first packet that we receive over the Diag input may

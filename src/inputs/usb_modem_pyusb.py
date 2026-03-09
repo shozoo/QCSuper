@@ -10,6 +10,8 @@ from usb.util import dispose_resources
 from traceback import format_exc
 from usb.core import USBError
 from typing import Optional
+from time import sleep
+
 
 
 class UsbModemPyusbConnector(HdlcMixin, BaseInput):
@@ -68,45 +70,62 @@ class UsbModemPyusbConnector(HdlcMixin, BaseInput):
 
     def read_loop(self):
 
+        read_buffer = b""
+
+        num_reconnect_retries = 0
+
         while True:
             # Read more bytes until a trailer character is found
 
-            raw_payload = b""
+            read_size = self.dev_intf.read_endpoint.wMaxPacketSize or 0x200
 
-            while not raw_payload.endswith(self.TRAILER_CHAR):
+            while self.TRAILER_CHAR not in read_buffer:
                 try:
                     data_read = bytes(
-                        self.dev_intf.read_endpoint.read(0x1000, timeout=0x7FFFFFFF)
+                        self.dev_intf.read_endpoint.read(read_size, timeout=0x7FFFFFFF)
                     )
                     assert data_read
 
                 except Exception:
                     info("Connection from the USB link closed")
                     debug("Reason for closing the link: " + format_exc())
-                    exit()
 
-                raw_payload += data_read
+                    # Retry loop.
+
+                    if num_reconnect_retries >= 3:
+                        error("Connection to the USB link lost despite retries")
+                        exit()
+                    sleep(2)
+                    num_reconnect_retries += 1
+
+                else:
+                    num_reconnect_retries = 0
+
+                read_buffer += data_read
 
             # Decapsulate and dispatch
 
-            if raw_payload == self.TRAILER_CHAR:
-                error("The modem seems to be unavailable.")
+            while self.TRAILER_CHAR in read_buffer:
+                end_pos = read_buffer.index(self.TRAILER_CHAR) + 1
+                raw_payload = read_buffer[:end_pos]
+                read_buffer = read_buffer[end_pos:]
 
-                exit()
+                if raw_payload == self.TRAILER_CHAR:
+                    warning("(Received an empty diag frame)")
+                elif len(raw_payload) < 3:
+                    warning("(Received a too short diag frame)")
 
-            try:
-                unframed_message = self.hdlc_decapsulate(
-                    payload=raw_payload,
-                    raise_on_invalid_frame=not self.received_first_packet,
-                )
+                else:
+                    try:
+                        unframed_message = self.hdlc_decapsulate(payload=raw_payload)
 
-            except self.InvalidFrameError:
-                # The first packet that we receive over the Diag input may
-                # be partial
+                    except self.InvalidFrameError:
+                        # The first packet that we receive over the Diag input may
+                        # be partial
 
-                continue
+                        continue
 
-            finally:
-                self.received_first_packet = True
+                    finally:
+                        self.received_first_packet = True
 
-            self.dispatch_received_diag_packet(unframed_message)
+                    self.dispatch_received_diag_packet(unframed_message)

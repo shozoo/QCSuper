@@ -35,7 +35,6 @@ class LsCommand(BaseEfsShellCommand):
         return argument_parser
 
     def execute_command(self, diag_input, args: Namespace):
-        # print("LsCommand", self.fs_type)
         if self.fs_type == "efs":
             subsys_code = (
                 DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary

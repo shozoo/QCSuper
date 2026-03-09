@@ -23,6 +23,8 @@ from .inputs.usb_modem_argparser import UsbModemArgParser, UsbModemArgType
 from .inputs.dlf_read import DlfReader
 from .inputs.adb import AdbConnector
 from .inputs.adb_wsl2 import AdbWsl2Connector
+from .inputs.tcp_connector import TcpConnector
+
 
 
 def main():
@@ -37,14 +39,15 @@ def main():
         action="store_true",
         help="Use a command prompt, allowing for interactive completion of commands.",
     )
-    # parser.add_argument('--efs-shell', action = 'store_true', help = 'Spawn an interactive shell to navigate within the embedded filesystem (EFS) of the baseband device.')
     parser.add_argument(
         "--efs-shell",
-        nargs="?",
-        const="efs",
-        default=False,
-        choices=["efs", "efs2"],
-        help='Spawn an interactive shell to navigate within the embedded filesystem (EFS) of the baseband device. Optionally specify "primary" or "alternate" to choose the file system.',
+        action="store_true",
+        help="Spawn an interactive shell to navigate within the embedded filesystem (EFS) of the baseband device.",
+    )
+    parser.add_argument(
+        "--efs-shell2",
+        action="store_true",
+        help='Spawn an interactive shell to navigate within the embedded filesystem (EFS) of the baseband device. Use the secondary filesystem known as "alternate".',
     )
     parser.add_argument(
         "-v",
@@ -69,6 +72,12 @@ def main():
         action="store",
         default=None,
         help="Unix path to the Windows adb executable. Equivalent of --adb command but with WSL2/Windows interoperability.",
+    )
+    input_mode.add_argument(
+        "--tcp",
+        action="store",
+        metavar="IP_ADDRESS:TCP_PORT",
+        help="Connect to remote TCP service exposing DIAG interface.",
     )
     input_mode.add_argument(
         "--usb-modem",
@@ -219,6 +228,8 @@ def main():
                 diag_input = UsbModemPyserialConnector(usb_modem.chardev_if_mounted)
             else:
                 diag_input = UsbModemPyusbConnector(usb_modem)
+    elif args.tcp:
+        diag_input = TcpConnector(args.tcp)
     elif args.usb_modem:
         usb_arg = UsbModemArgParser(args.usb_modem)
         if not usb_arg.arg_type:
@@ -313,14 +324,22 @@ def main():
         )
 
     if args.efs_shell:
-        # print("--efs-shell with", args.efs_shell)
         if diag_input.modules:
             error("You can not both specify the use of EFS shell and a module")
             exit()
 
         from .modules.efs_shell import EfsShell
 
-        diag_input.add_module(EfsShell(diag_input, args.efs_shell))
+        diag_input.add_module(EfsShell(diag_input, "efs"))
+
+    elif args.efs_shell2:
+        if diag_input.modules:
+            error("You can not both specify the use of EFS shell and a module")
+            exit()
+
+        from .modules.efs_shell import EfsShell
+
+        diag_input.add_module(EfsShell(diag_input, "efs2"))
 
     if not diag_input.modules:
         parser.print_usage()

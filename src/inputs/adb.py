@@ -479,6 +479,8 @@ class AdbConnector(HdlcMixin, BaseInput):
                 self.packet_buffer += socket_read
 
             while self.TRAILER_CHAR in self.packet_buffer:
+                # TODO: Add better auto-reconnect?
+
                 # Parse frame
 
                 raw_payload, self.packet_buffer = self.packet_buffer.split(
@@ -489,8 +491,7 @@ class AdbConnector(HdlcMixin, BaseInput):
 
                 try:
                     unframed_message = self.hdlc_decapsulate(
-                        payload=raw_payload + self.TRAILER_CHAR,
-                        raise_on_invalid_frame=not self.received_first_packet,
+                        payload=raw_payload + self.TRAILER_CHAR
                     )
 
                 except self.InvalidFrameError:

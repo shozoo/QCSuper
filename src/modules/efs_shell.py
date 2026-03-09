@@ -49,7 +49,6 @@ class EfsShell:
 
         self.diag_input: BaseInput = diag_input
         self.fs_type = fs_type
-        # print("EfsShell", self.fs_type)
         self.parser = ArgumentParser(
             description="Spawn an interactive shell to navigate within the embedded filesystem (EFS) of the baseband device.",
             prog="",

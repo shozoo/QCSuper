@@ -31,8 +31,8 @@ class LnCommand(BaseEfsShellCommand):
             "ln", description="Create an UNIX symbolic link across the remote EFS."
         )
 
-        argument_parser.add_argument("remote_newlink")
         argument_parser.add_argument("remote_target")
+        argument_parser.add_argument("remote_newlink")
 
         return argument_parser
 
@@ -52,13 +52,14 @@ class LnCommand(BaseEfsShellCommand):
             pack(
                 "<BH",
                 subsys_code,  # Command subsystem number
+                DIAG_SUBSYS_FS,  # Command subsystem number
                 EFS2_DIAG_SYMLINK,
             )
-            + args.remote_newlink.encode("latin1")
+            + args.remote_target.encode("latin1")
             .decode("unicode_escape")
             .encode("latin1")
             + b"\x00"
-            + args.remote_target.encode("latin1")
+            + args.remote_newlink.encode("latin1")
             .decode("unicode_escape")
             .encode("latin1")
             + b"\x00",

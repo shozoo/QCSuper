@@ -25,6 +25,7 @@ It uses the Qualcomm Diag protocol, also called QCDM or DM (Diagnostic Monitor) 
 ## Table of contents
 
 * **[Installation](#installation)**
+  * [UV tool installation](#uv-tool-installation)
   * [Ubuntu and Debian installation](#ubuntu-and-debian-installation)
   * [Windows installation](#ubuntu-and-debian-installation)
 * [Supported protocols](#supported-protocols)
@@ -45,13 +46,27 @@ It uses the Qualcomm Diag protocol, also called QCDM or DM (Diagnostic Monitor) 
 
 ## Installation
 
-QCSuper was lately tested and developed on Ubuntu LTS 22.04 and also has been used over Windows 11. It depends on a few Python modules. It is advised to use Linux for better compatibility.
+QCSuper was lately tested and developed on Ubuntu LTS 22.04+ and also has been used over Windows 11. It depends on a few Python modules. It is advised to use Linux for better compatibility.
 
 To use it, your phone must be rooted or expose a diag service port over USB. In order to check for compatibility with your phone, look up the phone's model on a site like [GSMArena](https://www.gsmarena.com/) and check whether it has a Qualcomm processor.
 
 In order to open PCAP files produced by QCSuper, you can use any Wireshark 2.x - 4.x for 2G/3G frames, but you need at least Wireshark 2.5.x for 4G frames (and 2.6.x for individual NAS messages decrypted out of 4G frames). Ubuntu currently provides a recent enough build for all versions.
 
 Decoding 5G frames was tested under Wireshark 3.6.x and will be done through automatically installing a Wireshark Lua plug-in (in `%APPDATA%\Wireshark\plugins` under Windows or in `~/.local/lib/wireshark/plugins` under Linux and macOS), which can be avoided through setting the `DONT_INSTALL_WIRESHARK_PLUGIN=1` environment variable if you are willing to avoid this.
+
+### UV tool installation
+
+If you prefer managing Python CLI tools with [uv](https://docs.astral.sh/uv/), you can install QCSuper together with its Python and bundled binary dependencies directly from a checkout:
+
+```bash
+uv tool install --from . qcsuper
+```
+
+You can also install straight from GitHub without cloning first:
+
+```bash
+uv tool install --from git+https://github.com/P1sec/QCSuper.git qcsuper
+```
 
 ### Ubuntu and Debian installation
 
@@ -186,7 +201,7 @@ $ sudo ./qcsuper.py --usb-modem /dev/ttyHS2 --wireshark-live
 Here is the current usage notice for QCSuper:
 
 ```
-usage: qcsuper.py [-h] [--cli] [--efs-shell] [-v] (--adb | --adb-wsl2 ADB_WSL2 | --usb-modem TTY_DEV | --dlf-read DLF_FILE | --json-geo-read JSON_FILE) [--info]
+usage: qcsuper.py [-h] [--cli] [--efs-shell] [-v] (--adb | --adb-wsl2 ADB_WSL2 | --tcp IP_ADDRESS:TCP_PORT --usb-modem TTY_DEV | --dlf-read DLF_FILE | --json-geo-read JSON_FILE) [--info]
                   [--pcap-dump PCAP_FILE] [--wireshark-live] [--memory-dump OUTPUT_DIR] [--dlf-dump DLF_FILE] [--json-geo-dump JSON_FILE] [--decoded-sibs-dump]
                   [--reassemble-sibs] [--decrypt-nas] [--include-ip-traffic] [--start MEMORY_START] [--stop MEMORY_STOP]
 
@@ -203,6 +218,8 @@ Input mode:
 
   --adb                 Use a rooted Android phone with USB debugging enabled as input (requires adb).
   --adb-wsl2 ADB_WSL2   Unix path to the Windows adb executable. Equivalent of --adb command but with WSL2/Windows interoperability.
+  --tcp IP_ADDRESS:TCP_PORT
+                        Connect to remote TCP service exposing DIAG interface.
   --usb-modem TTY_DEV   Use an USB modem exposing a DIAG pseudo-serial port through USB.
                         Possible syntaxes:
                           - "auto": Use the first device interface in the system found where the
@@ -376,6 +393,7 @@ Please note that only one client may communicate with the Diag port at the same 
 
 If ModemManager is active on your system, QCSuper will attempt to dynamically add an udev rule to prevent it to access the Diag port and restart its daemon, as it's currently the best way to achieve this. It will suppress this rule when closed.
 
+
 ## Supported devices
 
 QCSuper was successfully tested with:
@@ -391,8 +409,13 @@ QCSuper was successfully tested with:
 * OnePlus One and 3 (Phones)
 * Andromax A16C3H (Phone)
 * Samsung Galaxy S4 GT-I9505 (Phone)
+* Virtual Access GW1150 - using TCP connection
+* Westermo Merlin 4600 - using TCP connection
+* Fairphone 5 - [see **full guide**](https://github.com/Doct2O/fairphone5/tree/main/radio/cellular/qualcomm-diagnostic-mode)
 
 Is it however aiming to be compatible with the widest possible range of devices based on a Qualcomm chipset, for the capture part.
+
+Other working devices are listed at: https://github.com/P1sec/QCSuper/issues?q=label:"confirmed+working"
 
 Do no hesitate to report whether your device is successfully working or not through opening a [Github issue](https://github.com/P1sec/QCSuper/issues/new).
 

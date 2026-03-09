@@ -45,8 +45,9 @@ class RmCommand(BaseEfsShellCommand):
             subsys_code = DIAG_SUBSYS_FS_ALTERNATE
         else:
             raise ValueError("Invalid filesystem type specified.")
-        # First, emit a stat() (EFS2_DIAG_STAT) call in order to understand whether
-        # the remote path input by the user is a directory or not
+
+        # First, emit an lstat() (EFS2_DIAG_LSTAT) call in order to understand
+        # whether the remote path input by the user is a directory or not
 
         is_directory: bool = False
 
@@ -55,7 +56,7 @@ class RmCommand(BaseEfsShellCommand):
             pack(
                 "<BH",
                 subsys_code,  # Command subsystem number
-                EFS2_DIAG_STAT,
+                EFS2_DIAG_LSTAT,
             )
             + args.path.encode("latin1").decode("unicode_escape").encode("latin1")
             + b"\x00",
@@ -64,26 +65,18 @@ class RmCommand(BaseEfsShellCommand):
 
         if opcode != DIAG_SUBSYS_CMD_F:
             print(
-                'Error executing STAT: %s received with payload "%s"'
+                'Error executing LSTAT: %s received with payload "%s"'
                 % (message_id_to_name.get(opcode, opcode), repr(payload))
             )
             return
 
-        (
-            cmd_subsystem_id,
-            subcommand_code,
-            errno,
-            file_mode,
-            file_size,
-            num_links,
-            atime,
-            mtime,
-            ctime,
-        ) = unpack("<BH7i", payload)
+        (cmd_subsystem_id, subcommand_code, errno, file_mode, atime, mtime, ctime) = (
+            unpack("<BH5i", payload)
+        )
 
         if errno:
             print(
-                "Error executing STAT: %s"
+                "Error executing LSTAT: %s"
                 % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
             )
             return
