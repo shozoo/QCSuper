@@ -26,6 +26,7 @@ from .inputs.adb_wsl2 import AdbWsl2Connector
 from .inputs.tcp_connector import TcpConnector
 
 
+
 def main():
 
     parser = ArgumentParser(
@@ -42,6 +43,11 @@ def main():
         "--efs-shell",
         action="store_true",
         help="Spawn an interactive shell to navigate within the embedded filesystem (EFS) of the baseband device.",
+    )
+    parser.add_argument(
+        "--efs-shell2",
+        action="store_true",
+        help='Spawn an interactive shell to navigate within the embedded filesystem (EFS) of the baseband device. Use the secondary filesystem known as "alternate".',
     )
     parser.add_argument(
         "-v",
@@ -324,7 +330,16 @@ def main():
 
         from .modules.efs_shell import EfsShell
 
-        diag_input.add_module(EfsShell(diag_input))
+        diag_input.add_module(EfsShell(diag_input, "efs"))
+
+    elif args.efs_shell2:
+        if diag_input.modules:
+            error("You can not both specify the use of EFS shell and a module")
+            exit()
+
+        from .modules.efs_shell import EfsShell
+
+        diag_input.add_module(EfsShell(diag_input, "efs2"))
 
     if not diag_input.modules:
         parser.print_usage()

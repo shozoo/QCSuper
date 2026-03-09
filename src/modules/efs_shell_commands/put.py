@@ -16,6 +16,13 @@ from ...protocol.efs2 import *
 
 
 class PutCommand(BaseEfsShellCommand):
+    # Add new parameter efs_type to the initialization method
+    def __init__(self, efs_type=None):
+        # Save efs_type for use by other methods of the class
+        self.efs_type = efs_type
+        # Call the parent class's initialization method, if necessary
+        super().__init__(fs_type=efs_type)
+
     def get_argument_parser(
         self, subparsers_object: _SubParsersAction
     ) -> ArgumentParser:
@@ -31,7 +38,14 @@ class PutCommand(BaseEfsShellCommand):
         return argument_parser
 
     def execute_command(self, diag_input, args: Namespace):
-
+        if self.fs_type == "efs":
+            subsys_code = (
+                DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
+            )
+        elif self.fs_type == "efs2":
+            subsys_code = DIAG_SUBSYS_FS_ALTERNATE
+        else:
+            raise ValueError("Invalid filesystem type specified.")
         local_src: str = expanduser(args.local_src)
         remote_dst: str = args.remote_dst
 
@@ -53,7 +67,7 @@ class PutCommand(BaseEfsShellCommand):
                 DIAG_SUBSYS_CMD_F,
                 pack(
                     "<BH",
-                    DIAG_SUBSYS_FS,  # Command subsystem number
+                    subsys_code,  # Command subsystem number
                     EFS2_DIAG_STAT,
                 )
                 + remote_dst.encode("latin1").decode("unicode_escape").encode("latin1")
@@ -90,7 +104,7 @@ class PutCommand(BaseEfsShellCommand):
                 DIAG_SUBSYS_CMD_F,
                 pack(
                     "<BHii",
-                    DIAG_SUBSYS_FS,  # Command subsystem number
+                    subsys_code,  # Command subsystem number
                     EFS2_DIAG_OPEN,
                     0o1101,  # oflag - "O_WRONLY | O_TRUNC | O_CREAT "
                     file_mode_int,  # mode
@@ -132,7 +146,7 @@ class PutCommand(BaseEfsShellCommand):
                         DIAG_SUBSYS_CMD_F,
                         pack(
                             "<BHiI",
-                            DIAG_SUBSYS_FS,  # Command subsystem number
+                            subsys_code,  # Command subsystem number
                             EFS2_DIAG_WRITE,
                             file_fd,  # File descriptor to write to
                             read_position,  # File position to write at
@@ -161,7 +175,7 @@ class PutCommand(BaseEfsShellCommand):
                     DIAG_SUBSYS_CMD_F,
                     pack(
                         "<BHi",
-                        DIAG_SUBSYS_FS,  # Command subsystem number
+                        subsys_code,  # Command subsystem number
                         EFS2_DIAG_CLOSE,
                         file_fd,
                     ),

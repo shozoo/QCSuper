@@ -201,9 +201,9 @@ $ sudo ./qcsuper.py --usb-modem /dev/ttyHS2 --wireshark-live
 Here is the current usage notice for QCSuper:
 
 ```
-usage: qcsuper.py [-h] [--cli] [--efs-shell] [-v] (--adb | --adb-wsl2 ADB_WSL2 | --tcp IP_ADDRESS:TCP_PORT --usb-modem TTY_DEV | --dlf-read DLF_FILE | --json-geo-read JSON_FILE) [--info]
-                  [--pcap-dump PCAP_FILE] [--wireshark-live] [--memory-dump OUTPUT_DIR] [--dlf-dump DLF_FILE] [--json-geo-dump JSON_FILE] [--decoded-sibs-dump]
-                  [--reassemble-sibs] [--decrypt-nas] [--include-ip-traffic] [--start MEMORY_START] [--stop MEMORY_STOP]
+usage: qcsuper [-h] [--cli] [--efs-shell] [--efs-shell2] [-v] (--adb | --adb-wsl2 ADB_WSL2 | --tcp IP_ADDRESS:TCP_PORT | --usb-modem TTY_DEV | --dlf-read DLF_FILE |
+               --json-geo-read JSON_FILE) [--info] [--pcap-dump PCAP_FILE] [--wireshark-live] [--memory-dump OUTPUT_DIR] [--dlf-dump DLF_FILE] [--json-geo-dump JSON_FILE]
+               [--decoded-sibs-dump] [--reassemble-sibs] [--decrypt-nas] [--include-ip-traffic] [--start MEMORY_START] [--stop MEMORY_STOP]
 
 A tool for communicating with the Qualcomm DIAG protocol (also called QCDM or DM).
 
@@ -211,6 +211,7 @@ options:
   -h, --help            show this help message and exit
   --cli                 Use a command prompt, allowing for interactive completion of commands.
   --efs-shell           Spawn an interactive shell to navigate within the embedded filesystem (EFS) of the baseband device.
+  --efs-shell2          Spawn an interactive shell to navigate within the embedded filesystem (EFS) of the baseband device. Use the secondary filesystem known as "alternate".
   -v, --verbose         Add output for each received or sent Diag packet.
 
 Input mode:

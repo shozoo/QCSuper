@@ -13,6 +13,7 @@ from typing import Optional
 from time import sleep
 
 
+
 class UsbModemPyusbConnector(HdlcMixin, BaseInput):
     dev_intf: Optional[PyusbDevInterface] = None
 

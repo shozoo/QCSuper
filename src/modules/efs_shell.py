@@ -45,10 +45,10 @@ ALL_COMMAND_CLASSES = [
 
 
 class EfsShell:
-    def __init__(self, diag_input: BaseInput):
+    def __init__(self, diag_input: BaseInput, fs_type: str = "efs"):
 
         self.diag_input: BaseInput = diag_input
-
+        self.fs_type = fs_type
         self.parser = ArgumentParser(
             description="Spawn an interactive shell to navigate within the embedded filesystem (EFS) of the baseband device.",
             prog="",
@@ -61,7 +61,7 @@ class EfsShell:
         ] = {}
 
         for command_class in ALL_COMMAND_CLASSES:
-            command_object = command_class()
+            command_object = command_class(fs_type)
 
             sub_parser = command_object.get_argument_parser(
                 self.sub_parsers
@@ -141,12 +141,19 @@ class EfsShell:
                         self.print_help()
 
     def send_efs_handshake(self):
-
+        if self.fs_type == "efs":
+            subsys_code = (
+                DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
+            )
+        elif self.fs_type == "efs2":
+            subsys_code = DIAG_SUBSYS_FS_ALTERNATE
+        else:
+            raise ValueError("Invalid filesystem type specified.")
         opcode, payload = self.diag_input.send_recv(
             DIAG_SUBSYS_CMD_F,
             pack(
                 "<BH6I3II",
-                DIAG_SUBSYS_FS,  # Command subsystem number
+                subsys_code,  # Command subsystem number
                 EFS2_DIAG_HELLO,  # Command code
                 0x100000,  # Put all the windows size to high values, let the device negociate these down
                 0x100000,
