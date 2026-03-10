@@ -416,7 +416,7 @@ QCSuper was successfully tested with:
 
 Is it however aiming to be compatible with the widest possible range of devices based on a Qualcomm chipset, for the capture part.
 
-Other working devices are listed at: https://github.com/P1sec/QCSuper/issues?q=label:"confirmed+working"
+Other working devices are listed at: [https://github.com/P1sec/QCSuper/issues?q=label:"confirmed+working"](https://github.com/P1sec/QCSuper/issues?q=label:%22confirmed+working%22)
 
 Do no hesitate to report whether your device is successfully working or not through opening a [Github issue](https://github.com/P1sec/QCSuper/issues/new).
 
