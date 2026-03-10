@@ -27,34 +27,34 @@ class CatCommand(BaseEfsShellCommand):
     ) -> ArgumentParser:
 
         argument_parser = subparsers_object.add_parser(
-            "cat",
-            description="Read a file in the EFS, and display it to the standard input, as free text if it is printable or as a ascii-hexadecimal dump if it is not.",
+            'cat',
+            description='Read a file in the EFS, and display it to the standard input, as free text if it is printable or as a ascii-hexadecimal dump if it is not.',
         )
 
-        argument_parser.add_argument("path", nargs="?", default="/")
+        argument_parser.add_argument('path', nargs='?', default='/')
 
         return argument_parser
 
     def execute_command(self, diag_input, args: Namespace):
-        if self.fs_type == "efs":
-            subsys_code = (
-                DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
-            )
-        elif self.fs_type == "efs2":
+        if self.fs_type == 'efs':
+            subsys_code = DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
+        elif self.fs_type == 'efs2':
             subsys_code = DIAG_SUBSYS_FS_ALTERNATE
         else:
-            raise ValueError("Invalid filesystem type specified.")
+            raise ValueError('Invalid filesystem type specified.')
         opcode, payload = diag_input.send_recv(
             DIAG_SUBSYS_CMD_F,
             pack(
-                "<BHii",
+                '<BHii',
                 subsys_code,  # Command subsystem number
                 EFS2_DIAG_OPEN,
                 0x0,  # oflag - "O_RDONLY"
                 0,  # mode (ignored)
             )
-            + args.path.encode("latin1").decode("unicode_escape").encode("latin1")
-            + b"\x00",
+            + args.path.encode('latin1')
+            .decode('unicode_escape')
+            .encode('latin1')
+            + b'\x00',
             accept_error=True,
         )
 
@@ -65,17 +65,19 @@ class CatCommand(BaseEfsShellCommand):
             )
             return
 
-        (cmd_subsystem_id, subcommand_code, file_fd, errno) = unpack("<BHIi", payload)
+        (cmd_subsystem_id, subcommand_code, file_fd, errno) = unpack(
+            '<BHIi', payload
+        )
 
         if errno:
             print(
-                "Error executing OPEN: %s"
+                'Error executing OPEN: %s'
                 % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
             )
             return
 
         try:  # try/finally block for remotely closing the file opened with the "EFS2_DIAG_OPEN" command in all cases:
-            bytes_read: bytes = b""
+            bytes_read: bytes = b''
 
             BYTES_TO_READ = 1024
 
@@ -83,7 +85,7 @@ class CatCommand(BaseEfsShellCommand):
                 opcode, payload = diag_input.send_recv(
                     DIAG_SUBSYS_CMD_F,
                     pack(
-                        "<BHiII",
+                        '<BHiII',
                         subsys_code,  # Command subsystem number
                         EFS2_DIAG_READ,
                         file_fd,  # File descriptor to read from
@@ -92,7 +94,7 @@ class CatCommand(BaseEfsShellCommand):
                     ),
                 )
 
-                read_struct = "<BHiIii"
+                read_struct = '<BHiIii'
 
                 (
                     cmd_subsystem_id,
@@ -107,7 +109,7 @@ class CatCommand(BaseEfsShellCommand):
 
                 if errno:
                     print(
-                        "Error executing READ: %s"
+                        'Error executing READ: %s'
                         % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
                     )
                     return
@@ -120,9 +122,9 @@ class CatCommand(BaseEfsShellCommand):
 
             try:
                 if (
-                    bytes_read.decode("utf8")
-                    .replace("\n", "")
-                    .replace("\t", "")
+                    bytes_read.decode('utf8')
+                    .replace('\n', '')
+                    .replace('\t', '')
                     .isprintable()
                 ):
                     is_printable = True
@@ -130,7 +132,7 @@ class CatCommand(BaseEfsShellCommand):
                 pass
 
             if is_printable:  # Print raw text if printable
-                print(bytes_read.decode("utf8"))
+                print(bytes_read.decode('utf8'))
 
             else:  # Print an hexadecimal/ascii dump if non-ascii printable
                 BYTES_PER_LINE = 32
@@ -138,25 +140,31 @@ class CatCommand(BaseEfsShellCommand):
                 print()
 
                 for position in range(0, len(bytes_read), BYTES_PER_LINE):
-                    hexdump_line: str = "  "
+                    hexdump_line: str = '  '
 
-                    for byte_index in range(BYTES_PER_LINE):  # Display hex bytes
+                    for byte_index in range(
+                        BYTES_PER_LINE
+                    ):  # Display hex bytes
                         if position + byte_index < len(bytes_read):
-                            hexdump_line += "%02x " % bytes_read[position + byte_index]
+                            hexdump_line += (
+                                '%02x ' % bytes_read[position + byte_index]
+                            )
                         else:  # Apply padding if needed
-                            hexdump_line += "   "
+                            hexdump_line += '   '
 
                         if byte_index & 3 == 3:
-                            hexdump_line += " "
+                            hexdump_line += ' '
 
-                    hexdump_line += "  "
+                    hexdump_line += '  '
 
                     for byte in bytes_read[
                         position : position + BYTES_PER_LINE
                     ]:  # Display ascii bytes at the end of the printed line
-                        hexdump_line += chr(byte) if 0x20 <= byte <= 0x7F else "."
+                        hexdump_line += (
+                            chr(byte) if 0x20 <= byte <= 0x7F else '.'
+                        )
 
-                    hexdump_line += " "
+                    hexdump_line += ' '
 
                     print(hexdump_line)
 
@@ -166,18 +174,20 @@ class CatCommand(BaseEfsShellCommand):
             opcode, payload = diag_input.send_recv(
                 DIAG_SUBSYS_CMD_F,
                 pack(
-                    "<BHi",
+                    '<BHi',
                     subsys_code,  # Command subsystem number
                     EFS2_DIAG_CLOSE,
                     file_fd,
                 ),
             )
 
-            (cmd_subsystem_id, subcommand_code, errno) = unpack("<BHi", payload)
+            (cmd_subsystem_id, subcommand_code, errno) = unpack(
+                '<BHi', payload
+            )
 
             if errno:
                 print(
-                    "Error executing CLOSE: %s"
+                    'Error executing CLOSE: %s'
                     % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
                 )
                 return

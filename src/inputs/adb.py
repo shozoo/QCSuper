@@ -1,6 +1,14 @@
 #!/usr/bin/python3
 # -*- encoding: Utf-8 -*-
-from subprocess import Popen, run, PIPE, DEVNULL, STDOUT, TimeoutExpired, list2cmdline
+from subprocess import (
+    Popen,
+    run,
+    PIPE,
+    DEVNULL,
+    STDOUT,
+    TimeoutExpired,
+    list2cmdline,
+)
 from socket import socket, AF_INET, SOCK_STREAM
 from logging import debug, error, info, warning
 from os.path import realpath, dirname, exists
@@ -13,7 +21,14 @@ from time import sleep
 from re import search
 
 try:
-    from os import setpgrp, getenv, setresgid, setresuid, setgroups, getgrouplist
+    from os import (
+        setpgrp,
+        getenv,
+        setresgid,
+        setresuid,
+        setgroups,
+        getgrouplist,
+    )
     from pwd import getpwuid
 
     IS_UNIX = True
@@ -26,10 +41,10 @@ from ._hdlc_mixin import HdlcMixin
 from ._base_input import BaseInput
 
 INPUTS_DIR = dirname(realpath(__file__))
-ADB_BRIDGE_DIR = realpath(INPUTS_DIR + "/adb_bridge")
-ADB_BIN_DIR = realpath(INPUTS_DIR + "/external/adb")
+ADB_BRIDGE_DIR = realpath(INPUTS_DIR + '/adb_bridge')
+ADB_BIN_DIR = realpath(INPUTS_DIR + '/external/adb')
 
-ANDROID_TMP_DIR = "/data/local/tmp"
+ANDROID_TMP_DIR = '/data/local/tmp'
 
 
 def drop_privileges(detach_process=False):
@@ -42,7 +57,7 @@ def drop_privileges(detach_process=False):
 
         # Drop privileges if needed
 
-        uid, gid = getenv("SUDO_UID"), getenv("SUDO_GID")
+        uid, gid = getenv('SUDO_UID'), getenv('SUDO_GID')
 
         if uid and gid:
             uid, gid = int(uid), int(gid)
@@ -62,9 +77,9 @@ if not IS_UNIX:
 
 
 def run_safe(args, **kwargs):
-    debug("[>] Running adb command: " + list2cmdline(args))
+    debug('[>] Running adb command: ' + list2cmdline(args))
     result = run(args, preexec_fn=drop_privileges, **kwargs)
-    result_string = (result.stdout or b"") + (result.stderr or b"")
+    result_string = (result.stdout or b'') + (result.stderr or b'')
     if result and result_string:
         debug(
             '[<] Obtained result for running "%s": %s'
@@ -85,22 +100,22 @@ QCSUPER_TCP_PORT = 43555
 
 
 class AdbConnector(HdlcMixin, BaseInput):
-    def __init__(self, adb_exe=None, adb_host="localhost"):
+    def __init__(self, adb_exe=None, adb_host='localhost'):
         self._disposed = False
 
         if not adb_exe:
-            if platform in ("cygwin", "win32"):
-                self.adb_exe = ADB_BIN_DIR + "/adb_windows.exe"
-            elif platform == "darwin":
-                self.adb_exe = which("adb") or ADB_BIN_DIR + "/adb_macos"
+            if platform in ('cygwin', 'win32'):
+                self.adb_exe = ADB_BIN_DIR + '/adb_windows.exe'
+            elif platform == 'darwin':
+                self.adb_exe = which('adb') or ADB_BIN_DIR + '/adb_macos'
             else:
-                self.adb_exe = which("adb") or ADB_BIN_DIR + "/adb_linux"
+                self.adb_exe = which('adb') or ADB_BIN_DIR + '/adb_linux'
         else:
             self.adb_exe = adb_exe
 
         self.adb_host = adb_host
 
-        self.su_command = "%s"
+        self.su_command = '%s'
 
         # Whether we can use "adb exec-out" instead
         # of "adb shell" (we should do it if the
@@ -117,7 +132,7 @@ class AdbConnector(HdlcMixin, BaseInput):
         if self.usb_modem:
             return
 
-        if platform in ("cygwin", "win32"):
+        if platform in ('cygwin', 'win32'):
             self.usb_modem = PyusbDevInterface.auto_find()
             if not self.usb_modem.not_found_reason:
                 return
@@ -126,81 +141,98 @@ class AdbConnector(HdlcMixin, BaseInput):
         # adb, and for the availability of the "su" command
 
         bash_output = self.adb_shell(
-            "test -w /dev/diag; echo DIAG_NOT_WRITEABLE=$?; "
-            + "test -e /dev/diag; echo DIAG_NOT_EXISTS=$?; "
-            + "test -r /dev; echo DEV_NOT_READABLE=$?; "
-            + "test -e /dev/ffs-diag; echo FFS_DIAG_NOT_HERE=$?; "
-            "su -c id"
+            'test -w /dev/diag; echo DIAG_NOT_WRITEABLE=$?; '
+            + 'test -e /dev/diag; echo DIAG_NOT_EXISTS=$?; '
+            + 'test -r /dev; echo DEV_NOT_READABLE=$?; '
+            + 'test -e /dev/ffs-diag; echo FFS_DIAG_NOT_HERE=$?; '
+            'su -c id'
         )
 
         # Check for the presence of /dev/diag
 
-        if not search("DIAG_NOT_WRITEABLE=[01]", bash_output):
-            error("Could not run a bash command your phone, is adb functional?")
+        if not search('DIAG_NOT_WRITEABLE=[01]', bash_output):
+            error(
+                'Could not run a bash command your phone, is adb functional?'
+            )
 
-            error("ADB output: " + bash_output)
+            error('ADB output: ' + bash_output)
             exit()
 
         # If writable, continue
 
-        elif "DIAG_NOT_WRITEABLE=0" in bash_output:
+        elif 'DIAG_NOT_WRITEABLE=0' in bash_output:
             pass
 
         # If not present and "/dev/ffs-diag" is not here, raise an error
 
         elif (
-            "DEV_NOT_READABLE=0" in bash_output
-            and "DIAG_NOT_EXISTS=1" in bash_output
-            and "FFS_DIAG_NOT_HERE=1" in bash_output
+            'DEV_NOT_READABLE=0' in bash_output
+            and 'DIAG_NOT_EXISTS=1' in bash_output
+            and 'FFS_DIAG_NOT_HERE=1' in bash_output
         ):
-            error("Could not find /dev/diag, does your phone have a Qualcomm chip?")
+            error(
+                'Could not find /dev/diag, does your phone have a Qualcomm chip?'
+            )
             exit()
 
         # If maybe present but not writable, check for root
 
-        elif "uid=0" in bash_output:
+        elif 'uid=0' in bash_output:
             self.su_command = "su -c '%s'"
 
-        elif "uid=0" in self.adb_shell("su 0,0 sh -c 'id'"):
+        elif 'uid=0' in self.adb_shell("su 0,0 sh -c 'id'"):
             self.su_command = "su 0,0 sh -c '%s'"
 
         else:
             # "adb shell su" didn't work, try "adb root"
 
             adb = run_safe(
-                [self.adb_exe, "root"], stdout=PIPE, stderr=STDOUT, stdin=DEVNULL
+                [self.adb_exe, 'root'],
+                stdout=PIPE,
+                stderr=STDOUT,
+                stdin=DEVNULL,
             )
 
-            if b"cannot run as root" in adb.stdout:
-                error("Could not get root to adb, is your phone rooted?")
+            if b'cannot run as root' in adb.stdout:
+                error('Could not get root to adb, is your phone rooted?')
                 exit()
 
-            run_safe([self.adb_exe, "wait-for-device"], stdin=DEVNULL, check=True)
+            run_safe(
+                [self.adb_exe, 'wait-for-device'], stdin=DEVNULL, check=True
+            )
 
         # Once root has been obtained, send batch commands to check
         # for the presence of /dev/diag through adb
 
         bash_output = self.adb_shell(
-            "test -e /dev/diag; echo DIAG_NOT_EXISTS=$?; "
-            + "test -e /dev/ffs-diag; echo FFS_DIAG_NOT_HERE=$?"
+            'test -e /dev/diag; echo DIAG_NOT_EXISTS=$?; '
+            + 'test -e /dev/ffs-diag; echo FFS_DIAG_NOT_HERE=$?'
         )
 
         # If not present, raise an error
 
-        if "DIAG_NOT_EXISTS=1" in bash_output and "FFS_DIAG_NOT_HERE=1" in bash_output:
-            error("Could not find /dev/diag, does your phone have a Qualcomm chip?")
+        if (
+            'DIAG_NOT_EXISTS=1' in bash_output
+            and 'FFS_DIAG_NOT_HERE=1' in bash_output
+        ):
+            error(
+                'Could not find /dev/diag, does your phone have a Qualcomm chip?'
+            )
             exit()
 
-        if "DIAG_NOT_EXISTS=1" in bash_output and "FFS_DIAG_NOT_HERE=0" in bash_output:
+        if (
+            'DIAG_NOT_EXISTS=1' in bash_output
+            and 'FFS_DIAG_NOT_HERE=0' in bash_output
+        ):
             # Mode-switch the device
 
             for command in [
-                "setprop sys.usb.config diag,adb"
+                'setprop sys.usb.config diag,adb'
             ]:  # , 'setprop sys.usb.config diag,diag_mdm,adb'
                 adb = run_safe(
                     [
                         self.adb_exe,
-                        "exec-out" if self.can_use_exec_out else "shell",
+                        'exec-out' if self.can_use_exec_out else 'shell',
                         self.su_command % command,
                     ],
                     stdin=DEVNULL,
@@ -217,7 +249,7 @@ class AdbConnector(HdlcMixin, BaseInput):
                 if self.usb_modem:
                     return
 
-                if platform in ("cygwin", "win32"):
+                if platform in ('cygwin', 'win32'):
                     self.usb_modem = PyusbDevInterface.auto_find()
                     if not self.usb_modem.not_found_reason:
                         return
@@ -236,13 +268,13 @@ class AdbConnector(HdlcMixin, BaseInput):
                         return
 
             error(
-                "Could not automatically mode-switch your device to enable "
-                + "Diag-over-USB. Please read the QCSuper README for more background over this."
+                'Could not automatically mode-switch your device to enable '
+                + 'Diag-over-USB. Please read the QCSuper README for more background over this.'
             )
-            if platform in ("cygwin", "win32"):
+            if platform in ('cygwin', 'win32'):
                 error(
-                    "As you are on Windows, you may need to add a libusb-win32 filter "
-                    + "using the utility accessible through the Start Menu now."
+                    'As you are on Windows, you may need to add a libusb-win32 filter '
+                    + 'using the utility accessible through the Start Menu now.'
                 )
             exit()
 
@@ -250,16 +282,21 @@ class AdbConnector(HdlcMixin, BaseInput):
             # Upload the adb_bridge
 
             adb = run_safe(
-                [self.adb_exe, "push", ADB_BRIDGE_DIR + "/adb_bridge", ANDROID_TMP_DIR],
+                [
+                    self.adb_exe,
+                    'push',
+                    ADB_BRIDGE_DIR + '/adb_bridge',
+                    ANDROID_TMP_DIR,
+                ],
                 stdin=DEVNULL,
                 stdout=PIPE,
                 stderr=STDOUT,
             )
 
-            if b"error" in adb.stdout or adb.returncode != 0:
+            if b'error' in adb.stdout or adb.returncode != 0:
                 error(
                     'Could not transfer "adb_bridge" onto the device: '
-                    + adb.stdout.decode("utf8")
+                    + adb.stdout.decode('utf8')
                 )
                 exit()
 
@@ -267,18 +304,21 @@ class AdbConnector(HdlcMixin, BaseInput):
 
             self._relaunch_adb_bridge()
 
-            self.packet_buffer = b""
+            self.packet_buffer = b''
 
             super().__init__()
 
     def _check_for_usb_diag_interface(self) -> Optional[PyusbDevInterface]:
 
         devices_list = run_safe(
-            [self.adb_exe, "devices", "-l"], stdin=DEVNULL, stdout=PIPE, stderr=STDOUT
-        ).stdout.decode("utf8")
+            [self.adb_exe, 'devices', '-l'],
+            stdin=DEVNULL,
+            stdout=PIPE,
+            stderr=STDOUT,
+        ).stdout.decode('utf8')
 
-        device_num = search(r"usb:(\d+)-(\d+)", devices_list)
-        if device_num and exists("/sys/bus/usb/devices"):
+        device_num = search(r'usb:(\d+)-(\d+)', devices_list)
+        if device_num and exists('/sys/bus/usb/devices'):
             bus_idx = int(device_num.group(1), 10)
             port_idx = int(device_num.group(2), 10)
 
@@ -290,19 +330,22 @@ class AdbConnector(HdlcMixin, BaseInput):
 
     def _relaunch_adb_bridge(self):
 
-        if hasattr(self, "adb_proc"):
+        if hasattr(self, 'adb_proc'):
             self.adb_proc.terminate()
 
         self.adb_shell(
-            "killall -q adb_bridge; " + "chmod 755 " + ANDROID_TMP_DIR + "/adb_bridge"
+            'killall -q adb_bridge; '
+            + 'chmod 755 '
+            + ANDROID_TMP_DIR
+            + '/adb_bridge'
         )
 
         run_safe(
             [
                 self.adb_exe,
-                "forward",
-                "tcp:" + str(QCSUPER_TCP_PORT),
-                "tcp:" + str(QCSUPER_TCP_PORT),
+                'forward',
+                'tcp:' + str(QCSUPER_TCP_PORT),
+                'tcp:' + str(QCSUPER_TCP_PORT),
             ],
             check=True,
             stdout=DEVNULL,
@@ -312,8 +355,8 @@ class AdbConnector(HdlcMixin, BaseInput):
         self.adb_proc = Popen(
             [
                 self.adb_exe,
-                "exec-out" if self.can_use_exec_out else "shell",
-                self.su_command % (ANDROID_TMP_DIR + "/adb_bridge"),
+                'exec-out' if self.can_use_exec_out else 'shell',
+                self.su_command % (ANDROID_TMP_DIR + '/adb_bridge'),
             ],
             stdin=DEVNULL,
             stdout=PIPE,
@@ -326,11 +369,11 @@ class AdbConnector(HdlcMixin, BaseInput):
         )
 
         for line in self.adb_proc.stdout:
-            if "Connection to Diag established" in line:
+            if 'Connection to Diag established' in line:
                 break
 
             else:
-                warning("Unexpected adb_bridge output: " + line)
+                warning('Unexpected adb_bridge output: ' + line)
 
         self.socket = socket(AF_INET, SOCK_STREAM)
 
@@ -340,7 +383,7 @@ class AdbConnector(HdlcMixin, BaseInput):
         except Exception:
             self.adb_proc.terminate()
 
-            error("Could not communicate with the adb_bridge through TCP")
+            error('Could not communicate with the adb_bridge through TCP')
             exit()
 
         self.received_first_packet = False
@@ -361,7 +404,7 @@ class AdbConnector(HdlcMixin, BaseInput):
 
             if self.can_use_exec_out is None:
                 adb = run_safe(
-                    [self.adb_exe, "exec-out", "id"],
+                    [self.adb_exe, 'exec-out', 'id'],
                     stdin=DEVNULL,
                     stdout=PIPE,
                     stderr=STDOUT,
@@ -375,7 +418,7 @@ class AdbConnector(HdlcMixin, BaseInput):
             adb = run_safe(
                 [
                     self.adb_exe,
-                    "exec-out" if self.can_use_exec_out else "shell",
+                    'exec-out' if self.can_use_exec_out else 'shell',
                     self.su_command % command,
                 ],
                 stdin=DEVNULL,
@@ -386,37 +429,42 @@ class AdbConnector(HdlcMixin, BaseInput):
 
         except TimeoutExpired:
             error(
-                "Communication with adb timed out, is your phone displaying "
-                + "a confirmation dialog?"
+                'Communication with adb timed out, is your phone displaying '
+                + 'a confirmation dialog?'
             )
             exit()
 
-        if b"error" in adb.stdout or adb.returncode != 0:
-            if b"device not found" in adb.stdout or b"no devices" in adb.stdout:
+        if b'error' in adb.stdout or adb.returncode != 0:
+            if (
+                b'device not found' in adb.stdout
+                or b'no devices' in adb.stdout
+            ):
                 error(
-                    "Could not connect to the adb, is your phone plugged with USB "
-                    + "debugging enabled?"
+                    'Could not connect to the adb, is your phone plugged with USB '
+                    + 'debugging enabled?'
                 )
                 exit()
 
-            elif b"confirmation dialog on your device" in adb.stdout:
+            elif b'confirmation dialog on your device' in adb.stdout:
                 error(
-                    "Could not connect to the adb, is your phone displaying "
-                    + "a confirmation dialog?"
+                    'Could not connect to the adb, is your phone displaying '
+                    + 'a confirmation dialog?'
                 )
                 exit()
 
             else:
-                error("Could not connect to your device through adb")
+                error('Could not connect to your device through adb')
 
-                error("adb output: " + adb.stdout.decode("utf8"))
+                error('adb output: ' + adb.stdout.decode('utf8'))
                 exit()
 
-        return adb.stdout.decode("utf8").strip()
+        return adb.stdout.decode('utf8').strip()
 
     def send_request(self, packet_type, packet_payload):
 
-        raw_payload = self.hdlc_encapsulate(bytes([packet_type]) + packet_payload)
+        raw_payload = self.hdlc_encapsulate(
+            bytes([packet_type]) + packet_payload
+        )
 
         self.socket.send(raw_payload)
 
@@ -428,15 +476,15 @@ class AdbConnector(HdlcMixin, BaseInput):
         gps_info = run_safe(
             [
                 self.adb_exe,
-                "exec-out" if self.can_use_exec_out else "shell",
-                "dumpsys",
-                "location",
+                'exec-out' if self.can_use_exec_out else 'shell',
+                'dumpsys',
+                'location',
             ],
             stdout=PIPE,
         )
-        gps_info = gps_info.stdout.decode("utf8")
+        gps_info = gps_info.stdout.decode('utf8')
 
-        gps_info = search(r"(\d+\.\d+),(\d+\.\d+)", gps_info)
+        gps_info = search(r'(\d+\.\d+),(\d+\.\d+)', gps_info)
         if gps_info:
             lat, lng = map(float, gps_info.groups())
 
@@ -450,7 +498,7 @@ class AdbConnector(HdlcMixin, BaseInput):
 
                 socket_read = self.socket.recv(1024 * 1024 * 10)
 
-                if not socket_read and platform in ("cygwin", "win32"):
+                if not socket_read and platform in ('cygwin', 'win32'):
                     # Windows user hit Ctrl+C from the terminal, which
                     # subsequently propagated to adb_bridge and killed it.
                     # Try to restart the subprocess in order to perform
@@ -470,8 +518,8 @@ class AdbConnector(HdlcMixin, BaseInput):
 
                 if not socket_read:
                     error(
-                        "\nThe connection to the adb bridge was closed, or "
-                        + "preempted by another QCSuper instance"
+                        '\nThe connection to the adb bridge was closed, or '
+                        + 'preempted by another QCSuper instance'
                     )
 
                     return
@@ -508,7 +556,7 @@ class AdbConnector(HdlcMixin, BaseInput):
     def dispose(self, disposing=True):
 
         if not self._disposed:
-            if hasattr(self, "adb_proc"):
+            if hasattr(self, 'adb_proc'):
                 self.adb_proc.terminate()
 
             self._disposed = True

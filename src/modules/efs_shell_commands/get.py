@@ -28,31 +28,29 @@ class GetCommand(BaseEfsShellCommand):
     ) -> ArgumentParser:
 
         argument_parser = subparsers_object.add_parser(
-            "get",
+            'get',
             description="Read a file in the EFS, and download it to the disk to the specified location (to the shell's current directory if not specified.",
         )
 
-        argument_parser.add_argument("remote_src")
-        argument_parser.add_argument("local_dst", nargs="?")
+        argument_parser.add_argument('remote_src')
+        argument_parser.add_argument('local_dst', nargs='?')
 
         return argument_parser
 
     def execute_command(self, diag_input, args: Namespace):
-        if self.fs_type == "efs":
-            subsys_code = (
-                DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
-            )
-        elif self.fs_type == "efs2":
+        if self.fs_type == 'efs':
+            subsys_code = DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
+        elif self.fs_type == 'efs2':
             subsys_code = DIAG_SUBSYS_FS_ALTERNATE
         else:
-            raise ValueError("Invalid filesystem type specified.")
+            raise ValueError('Invalid filesystem type specified.')
         remote_src: str = args.remote_src
         local_dst: str = expanduser(
-            args.local_dst or (getcwd() + "/" + basename(remote_src))
+            args.local_dst or (getcwd() + '/' + basename(remote_src))
         )
 
         if exists(local_dst) and isdir(local_dst):
-            local_dst += "/" + basename(remote_src)
+            local_dst += '/' + basename(remote_src)
 
         if not exists(realpath(dirname(local_dst))):
             print('Error: "%s": No such file or directory' % local_dst)
@@ -61,14 +59,16 @@ class GetCommand(BaseEfsShellCommand):
         opcode, payload = diag_input.send_recv(
             DIAG_SUBSYS_CMD_F,
             pack(
-                "<BHii",
+                '<BHii',
                 subsys_code,  # Command subsystem number
                 EFS2_DIAG_OPEN,
                 0x0,  # oflag - "O_RDONLY"
                 0,  # mode (ignored)
             )
-            + remote_src.encode("latin1").decode("unicode_escape").encode("latin1")
-            + b"\x00",
+            + remote_src.encode('latin1')
+            .decode('unicode_escape')
+            .encode('latin1')
+            + b'\x00',
             accept_error=True,
         )
 
@@ -79,11 +79,13 @@ class GetCommand(BaseEfsShellCommand):
             )
             return
 
-        (cmd_subsystem_id, subcommand_code, file_fd, errno) = unpack("<BHIi", payload)
+        (cmd_subsystem_id, subcommand_code, file_fd, errno) = unpack(
+            '<BHIi', payload
+        )
 
         if errno:
             print(
-                "Error executing OPEN: %s"
+                'Error executing OPEN: %s'
                 % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
             )
             return
@@ -91,12 +93,12 @@ class GetCommand(BaseEfsShellCommand):
         try:  # try/finally block for remotely closing the file opened with the "EFS2_DIAG_OPEN" command in all cases:
             BYTES_TO_READ = 1024
 
-            with open(local_dst, "wb") as output_file:
+            with open(local_dst, 'wb') as output_file:
                 while True:
                     opcode, payload = diag_input.send_recv(
                         DIAG_SUBSYS_CMD_F,
                         pack(
-                            "<BHiII",
+                            '<BHiII',
                             subsys_code,  # Command subsystem number
                             EFS2_DIAG_READ,
                             file_fd,  # File descriptor to read from
@@ -105,7 +107,7 @@ class GetCommand(BaseEfsShellCommand):
                         ),
                     )
 
-                    read_struct = "<BHiIii"
+                    read_struct = '<BHiIii'
 
                     (
                         cmd_subsystem_id,
@@ -122,7 +124,7 @@ class GetCommand(BaseEfsShellCommand):
 
                     if errno:
                         print(
-                            "Error executing READ: %s"
+                            'Error executing READ: %s'
                             % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
                         )
                         return
@@ -134,18 +136,20 @@ class GetCommand(BaseEfsShellCommand):
             opcode, payload = diag_input.send_recv(
                 DIAG_SUBSYS_CMD_F,
                 pack(
-                    "<BHi",
+                    '<BHi',
                     subsys_code,  # Command subsystem number
                     EFS2_DIAG_CLOSE,
                     file_fd,
                 ),
             )
 
-            (cmd_subsystem_id, subcommand_code, errno) = unpack("<BHi", payload)
+            (cmd_subsystem_id, subcommand_code, errno) = unpack(
+                '<BHi', payload
+            )
 
             if errno:
                 print(
-                    "Error executing CLOSE: %s"
+                    'Error executing CLOSE: %s'
                     % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
                 )
                 return

@@ -3,7 +3,7 @@ from argparse import ArgumentParser, _SubParsersAction, Namespace
 
 class BaseEfsShellCommand:
     # Initialization method, add an attribute used to store the file system type
-    def __init__(self, fs_type="efs"):
+    def __init__(self, fs_type='efs'):
         self.fs_type = fs_type
 
     def get_argument_parser(

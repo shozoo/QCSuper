@@ -13,7 +13,6 @@ from typing import Optional
 from time import sleep
 
 
-
 class UsbModemPyusbConnector(HdlcMixin, BaseInput):
     dev_intf: Optional[PyusbDevInterface] = None
 
@@ -33,7 +32,7 @@ class UsbModemPyusbConnector(HdlcMixin, BaseInput):
                     'The USB modem device seems to be taken by a kernel driver, such as "usbserial" '
                     + 'or "hso". Please pass directly a device name using an option like "--usb-modem /dev/ttyUSB2" '
                     + 'or "/dev/ttyHS0" (on Linux) or "COM0" (on Windows) if it applies, or unmount the corresponding '
-                    + "driver."
+                    + 'driver.'
                 )
 
                 exit()
@@ -57,20 +56,22 @@ class UsbModemPyusbConnector(HdlcMixin, BaseInput):
 
     def send_request(self, packet_type, packet_payload):
 
-        raw_payload = self.hdlc_encapsulate(bytes([packet_type]) + packet_payload)
+        raw_payload = self.hdlc_encapsulate(
+            bytes([packet_type]) + packet_payload
+        )
 
         try:
             self.dev_intf.write_endpoint.write(raw_payload)
         except USBError:
             error(
                 "[!] Can't write to the USB device. Maybe that you need "
-                + "root/administrator privileges, or that the device was unplugged? "
+                + 'root/administrator privileges, or that the device was unplugged? '
                 + format_exc()
             )
 
     def read_loop(self):
 
-        read_buffer = b""
+        read_buffer = b''
 
         num_reconnect_retries = 0
 
@@ -82,18 +83,22 @@ class UsbModemPyusbConnector(HdlcMixin, BaseInput):
             while self.TRAILER_CHAR not in read_buffer:
                 try:
                     data_read = bytes(
-                        self.dev_intf.read_endpoint.read(read_size, timeout=0x7FFFFFFF)
+                        self.dev_intf.read_endpoint.read(
+                            read_size, timeout=0x7FFFFFFF
+                        )
                     )
                     assert data_read
 
                 except Exception:
-                    info("Connection from the USB link closed")
-                    debug("Reason for closing the link: " + format_exc())
+                    info('Connection from the USB link closed')
+                    debug('Reason for closing the link: ' + format_exc())
 
                     # Retry loop.
 
                     if num_reconnect_retries >= 3:
-                        error("Connection to the USB link lost despite retries")
+                        error(
+                            'Connection to the USB link lost despite retries'
+                        )
                         exit()
                     sleep(2)
                     num_reconnect_retries += 1
@@ -111,13 +116,15 @@ class UsbModemPyusbConnector(HdlcMixin, BaseInput):
                 read_buffer = read_buffer[end_pos:]
 
                 if raw_payload == self.TRAILER_CHAR:
-                    warning("(Received an empty diag frame)")
+                    warning('(Received an empty diag frame)')
                 elif len(raw_payload) < 3:
-                    warning("(Received a too short diag frame)")
+                    warning('(Received a too short diag frame)')
 
                 else:
                     try:
-                        unframed_message = self.hdlc_decapsulate(payload=raw_payload)
+                        unframed_message = self.hdlc_decapsulate(
+                            payload=raw_payload
+                        )
 
                     except self.InvalidFrameError:
                         # The first packet that we receive over the Diag input may

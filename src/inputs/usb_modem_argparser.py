@@ -15,12 +15,12 @@ class UsbModemArgType(IntEnum):
 
 
 USB_ARG_REGEX_TO_MODE = {
-    r"COM\d+|/dev.+": UsbModemArgType.pyserial_dev,
-    r"([0-9a-f]{4}):([0-9a-f]{4})": UsbModemArgType.pyusb_vid_pid,
-    r"([0-9a-f]{4}):([0-9a-f]{4}):(\d+):(\d+)": UsbModemArgType.pyusb_vid_pid_cfg_intf,
-    r"([0-9]{3}):([0-9]{3})": UsbModemArgType.pyusb_bus_device,
-    r"([0-9]{3}):([0-9]{3}):(\d+):(\d+)": UsbModemArgType.pyusb_bus_device_cfg_intf,
-    "auto": UsbModemArgType.pyusb_auto,
+    r'COM\d+|/dev.+': UsbModemArgType.pyserial_dev,
+    r'([0-9a-f]{4}):([0-9a-f]{4})': UsbModemArgType.pyusb_vid_pid,
+    r'([0-9a-f]{4}):([0-9a-f]{4}):(\d+):(\d+)': UsbModemArgType.pyusb_vid_pid_cfg_intf,
+    r'([0-9]{3}):([0-9]{3})': UsbModemArgType.pyusb_bus_device,
+    r'([0-9]{3}):([0-9]{3}):(\d+):(\d+)': UsbModemArgType.pyusb_bus_device_cfg_intf,
+    'auto': UsbModemArgType.pyusb_auto,
 }
 
 
@@ -48,7 +48,9 @@ class UsbModemArgParser:
         syntax_type: Optional[UsbModemArgType] = None
 
         for possible_syntax, arg_type in USB_ARG_REGEX_TO_MODE.items():
-            regex_result = match("^" + possible_syntax + "$", arg, flags=IGNORECASE)
+            regex_result = match(
+                '^' + possible_syntax + '$', arg, flags=IGNORECASE
+            )
             if regex_result:
                 syntax_type = arg_type
                 break

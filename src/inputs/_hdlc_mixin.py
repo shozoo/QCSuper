@@ -14,8 +14,8 @@ from ..protocol.messages import *
 
 
 class HdlcMixin:
-    ESCAPE_CHAR = b"\x7d"
-    TRAILER_CHAR = b"\x7e"
+    ESCAPE_CHAR = b'\x7d'
+    TRAILER_CHAR = b'\x7e'
 
     ccitt_crc16 = staticmethod(mkCrcFun(0x11021, initCrc=0, xorOut=0xFFFF))
 
@@ -28,7 +28,7 @@ class HdlcMixin:
     def hdlc_encapsulate(self, payload) -> bytes:
 
         debug(
-            "[>] Sending request %s of length %d: %s"
+            '[>] Sending request %s of length %d: %s'
             % (
                 message_id_to_name.get(payload[0], payload[0]),
                 len(payload[1:]),
@@ -38,15 +38,17 @@ class HdlcMixin:
 
         # Add the CRC16
 
-        payload += pack("<H", self.ccitt_crc16(payload))
+        payload += pack('<H', self.ccitt_crc16(payload))
 
         # Escape the message
 
         payload = payload.replace(
-            self.ESCAPE_CHAR, bytes([self.ESCAPE_CHAR[0], self.ESCAPE_CHAR[0] ^ 0x20])
+            self.ESCAPE_CHAR,
+            bytes([self.ESCAPE_CHAR[0], self.ESCAPE_CHAR[0] ^ 0x20]),
         )
         payload = payload.replace(
-            self.TRAILER_CHAR, bytes([self.ESCAPE_CHAR[0], self.TRAILER_CHAR[0] ^ 0x20])
+            self.TRAILER_CHAR,
+            bytes([self.ESCAPE_CHAR[0], self.TRAILER_CHAR[0] ^ 0x20]),
         )
 
         # Add the trailer
@@ -69,7 +71,7 @@ class HdlcMixin:
         # Check the message length
 
         if len(payload) < 3:
-            error("Too short Diag frame received")
+            error('Too short Diag frame received')
 
             raise self.InvalidFrameError
 
@@ -81,20 +83,22 @@ class HdlcMixin:
         # Unescape the message
 
         payload = payload.replace(
-            bytes([self.ESCAPE_CHAR[0], self.TRAILER_CHAR[0] ^ 0x20]), self.TRAILER_CHAR
+            bytes([self.ESCAPE_CHAR[0], self.TRAILER_CHAR[0] ^ 0x20]),
+            self.TRAILER_CHAR,
         )
         payload = payload.replace(
-            bytes([self.ESCAPE_CHAR[0], self.ESCAPE_CHAR[0] ^ 0x20]), self.ESCAPE_CHAR
+            bytes([self.ESCAPE_CHAR[0], self.ESCAPE_CHAR[0] ^ 0x20]),
+            self.ESCAPE_CHAR,
         )
 
         # Check the CRC16
 
-        if payload[-2:] != pack("<H", self.ccitt_crc16(payload[:-2])):
+        if payload[-2:] != pack('<H', self.ccitt_crc16(payload[:-2])):
             warning(
-                "Ignoring (partial?) frame: Wrong CRC: %s (is: %02x, should be: %02x)"
+                'Ignoring (partial?) frame: Wrong CRC: %s (is: %02x, should be: %02x)'
                 % (
                     repr(payload[:-2]),
-                    unpack("<H", payload[-2:])[0],
+                    unpack('<H', payload[-2:])[0],
                     self.ccitt_crc16(payload[:-2]),
                 )
             )
@@ -112,5 +116,7 @@ class HdlcMixin:
 from ..protocol import messages
 
 message_id_to_name = {
-    value: key for key, value in messages.__dict__.items() if key.startswith("DIAG_")
+    value: key
+    for key, value in messages.__dict__.items()
+    if key.startswith('DIAG_')
 }

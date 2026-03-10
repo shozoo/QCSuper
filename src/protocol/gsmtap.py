@@ -14,7 +14,7 @@ def build_gsmtap_ip(gsmtap_protocol, gsmtap_channel_type, payload, is_uplink):
 
     packet = (
         pack(
-            ">BBBxHxx4xBxxx",
+            '>BBBxHxx4xBxxx',
             2,  # GSMTAP version
             4,  # Header words
             gsmtap_protocol,
@@ -28,7 +28,7 @@ def build_gsmtap_ip(gsmtap_protocol, gsmtap_channel_type, payload, is_uplink):
 
     packet = (
         pack(
-            ">HHHH",
+            '>HHHH',
             GSMTAP_PORT,  # From GSMTAP UDP port
             GSMTAP_PORT,  # To GSMTAP UDP port
             len(packet) + 8,  # Total length
@@ -41,7 +41,7 @@ def build_gsmtap_ip(gsmtap_protocol, gsmtap_channel_type, payload, is_uplink):
 
     return (
         pack(
-            ">BBHHHBBH8B",
+            '>BBHHHBBH8B',
             (4 << 4) | 5,  # IPv4 version and header words
             0,  # DSCP
             len(packet) + 20,  # Total length
@@ -69,7 +69,7 @@ def build_nr_rrc_log_ip(log_payload: bytes):
 
     packet = (
         pack(
-            ">HHHH",
+            '>HHHH',
             NR_RRC_UDP_PORT,  # From custom QCSuper plug-in UDP port
             NR_RRC_UDP_PORT,  # To custom QCSuper plug-in UDP port
             len(log_payload) + 8,  # Total length
@@ -82,7 +82,7 @@ def build_nr_rrc_log_ip(log_payload: bytes):
 
     return (
         pack(
-            ">BBHHHBBH8B",
+            '>BBHHHBBH8B',
             (4 << 4) | 5,  # IPv4 version and header words
             0,  # DSCP
             len(packet) + 20,  # Total length

@@ -146,8 +146,8 @@ class BaseInput:
                 # shutdown may break the state of the terminal (suppress echo). Avoid
                 # this by restoring the TTY's state.
 
-                if which("stty"):
-                    run(["stty", "sane"])
+                if which('stty'):
+                    run(['stty', 'sane'])
 
                 # Apply any further actions to clean up the Input class's
 
@@ -181,16 +181,18 @@ class BaseInput:
         self.modules_already_initialized = True
 
         try:
-            if hasattr(self, "send_request"):
+            if hasattr(self, 'send_request'):
                 self.send_recv(
                     DIAG_LOG_CONFIG_F,
-                    pack("<3xI", LOG_CONFIG_DISABLE_OP),
+                    pack('<3xI', LOG_CONFIG_DISABLE_OP),
                     accept_error=True,
                 )
 
                 self.send_recv(
                     DIAG_EXT_MSG_CONFIG_F,
-                    pack("<BxxI", MSG_EXT_SUBCMD_SET_ALL_RT_MASKS, MSG_LVL_NONE),
+                    pack(
+                        '<BxxI', MSG_EXT_SUBCMD_SET_ALL_RT_MASKS, MSG_LVL_NONE
+                    ),
                     accept_error=True,
                 )
 
@@ -208,10 +210,10 @@ class BaseInput:
         # Don't call "on_init" if the current input isn't a Diag device we
         # can send messages to
 
-        if not hasattr(self, "send_request"):
+        if not hasattr(self, 'send_request'):
             return
 
-        if hasattr(module, "on_init"):
+        if hasattr(module, 'on_init'):
             try:
                 # Initialize the module by calling the "on_init" callback.
 
@@ -225,7 +227,9 @@ class BaseInput:
                 # Once "on_init" has been done running, deregister the module if it
                 # does not have asynchronous callbacks.
 
-                if not hasattr(module, "on_log") and not hasattr(module, "on_message"):
+                if not hasattr(module, 'on_log') and not hasattr(
+                    module, 'on_message'
+                ):
                     self.remove_module(module)
 
     """
@@ -268,7 +272,7 @@ class BaseInput:
 
                 if not response_received:
                     error(
-                        "Error: Diag request %s with payload %s timed out"
+                        'Error: Diag request %s with payload %s timed out'
                         % (
                             message_id_to_name.get(req_opcode, req_opcode),
                             repr(req_payload),
@@ -288,9 +292,9 @@ class BaseInput:
                 if resp_opcode not in [req_opcode, *OPCODE_ERRORS]:
                     error(
                         (
-                            "Error: unmatched response received: %s with payload %s, while "
-                            + "the request was %s with payload %s. This is possibly due to "
-                            + "another client talking to the Diag device (which is forbidden)."
+                            'Error: unmatched response received: %s with payload %s, while '
+                            + 'the request was %s with payload %s. This is possibly due to '
+                            + 'another client talking to the Diag device (which is forbidden).'
                         )
                         % (
                             message_id_to_name.get(resp_opcode, resp_opcode),
@@ -308,9 +312,9 @@ class BaseInput:
                 if resp_opcode in OPCODE_ERRORS and not accept_error:
                     error(
                         (
-                            "Error: error response received: %s with payload %s, while "
-                            + "the request was %s with payload %s. Maybe this operation is "
-                            + "not supported by your device."
+                            'Error: error response received: %s with payload %s, while '
+                            + 'the request was %s with payload %s. Maybe this operation is '
+                            + 'not supported by your device.'
                         )
                         % (
                             message_id_to_name.get(resp_opcode, resp_opcode),
@@ -343,13 +347,13 @@ class BaseInput:
             # header is saved.
 
             (pending_msgs, log_outer_length), inner_log_packet = (
-                unpack_from("<BH", payload),
-                payload[calcsize("<BH") :],
+                unpack_from('<BH', payload),
+                payload[calcsize('<BH') :],
             )
 
             (log_inner_length, log_type, log_time), log_payload = (
-                unpack_from("<HHQ", inner_log_packet),
-                inner_log_packet[calcsize("<HHQ") :],
+                unpack_from('<HHQ', inner_log_packet),
+                inner_log_packet[calcsize('<HHQ') :],
             )
 
             # Call the function that will dispatch the log packet, along with
@@ -363,7 +367,7 @@ class BaseInput:
             self.dispatch_diag_log(
                 log_type,  # 16-bit log code
                 log_payload,  # Inner log payload
-                inner_log_packet[: calcsize("<HHQ")],  # Inner log header
+                inner_log_packet[: calcsize('<HHQ')],  # Inner log header
                 time(),  # Timestamp
             )
 
@@ -389,8 +393,12 @@ class BaseInput:
         opcode, payload = unframed_diag_packet[0], unframed_diag_packet[1:]
 
         debug(
-            "[<] Received response %s of length %d: %s"
-            % (message_id_to_name.get(opcode, opcode), len(payload), repr(payload))
+            '[<] Received response %s of length %d: %s'
+            % (
+                message_id_to_name.get(opcode, opcode),
+                len(payload),
+                repr(payload),
+            )
         )
 
         with self.event_diag_response_received:
@@ -401,23 +409,27 @@ class BaseInput:
     def dispatch_diag_log(self, log_type, log_payload, log_header, timestamp):
 
         debug(
-            "[<] Received log 0x%04x of length %d: %s"
+            '[<] Received log 0x%04x of length %d: %s'
             % (log_type, len(log_payload), repr(log_payload))
         )
 
         for module in self.modules:
-            if hasattr(module, "on_log"):
+            if hasattr(module, 'on_log'):
                 module.on_log(log_type, log_payload, log_header, timestamp)
 
     def dispatch_diag_message(self, opcode, payload):
 
         debug(
-            "[<] Received message with opcode %s of length %d: %s"
-            % (message_id_to_name.get(opcode, opcode), len(payload), repr(payload))
+            '[<] Received message with opcode %s of length %d: %s'
+            % (
+                message_id_to_name.get(opcode, opcode),
+                len(payload),
+                repr(payload),
+            )
         )
 
         for module in self.modules:
-            if hasattr(module, "on_message"):
+            if hasattr(module, 'on_message'):
                 module.on_message(opcode, payload)
 
     """
@@ -434,8 +446,8 @@ class BaseInput:
                     self.modules.remove(module)
 
                     try:
-                        if hasattr(module, "on_deinit") and hasattr(
-                            self, "send_request"
+                        if hasattr(module, 'on_deinit') and hasattr(
+                            self, 'send_request'
                         ):
                             module.on_deinit()
 
@@ -443,7 +455,7 @@ class BaseInput:
                         error(format_exc())
 
                     finally:
-                        if hasattr(module, "__del__"):
+                        if hasattr(module, '__del__'):
                             module.__del__()
 
         finally:
@@ -476,5 +488,7 @@ class BaseInput:
 from ..protocol import messages
 
 message_id_to_name = {
-    value: key for key, value in messages.__dict__.items() if key.startswith("DIAG_")
+    value: key
+    for key, value in messages.__dict__.items()
+    if key.startswith('DIAG_')
 }

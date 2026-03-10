@@ -24,12 +24,12 @@ class DlfDumper(EnableLogMixin):
     def on_log(self, log_type, log_payload, log_header, timestamp=0):
 
         # print('X', hex(log_type), log_payload, log_header, timestamp)
-        if unpack("<H", log_header[:2])[0] != len(log_header + log_payload):
+        if unpack('<H', log_header[:2])[0] != len(log_header + log_payload):
             warn(
-                "Dismissing log type 0x%04x, indicating size %d instead of %d"
+                'Dismissing log type 0x%04x, indicating size %d instead of %d'
                 % (
                     log_type,
-                    unpack("<H", log_header[:2])[0],
+                    unpack('<H', log_header[:2])[0],
                     len(log_header + log_payload),
                 )
             )

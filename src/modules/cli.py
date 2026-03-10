@@ -54,9 +54,9 @@ class CommandLineInterface:
 
         while True:
             try:
-                line = input(">>> ")
+                line = input('>>> ')
 
-                if line.strip().lower() in ("q", "quit", "exit"):
+                if line.strip().lower() in ('q', 'quit', 'exit'):
                     raise EOFError
 
             except (EOFError, IOError):
@@ -67,33 +67,43 @@ class CommandLineInterface:
 
                 return
 
-            if line.strip().startswith("stop "):
+            if line.strip().startswith('stop '):
                 # Stop a running command
 
-                command = line.replace("stop", "", 1).strip()
+                command = line.replace('stop', '', 1).strip()
 
-                if command_to_module.get(command, None) in self.diag_input.modules:
+                if (
+                    command_to_module.get(command, None)
+                    in self.diag_input.modules
+                ):
                     self.diag_input.remove_module(command_to_module[command])
 
-                    print("Command stopped")
+                    print('Command stopped')
 
                 else:
-                    print('Command "%s" does not appear to be running' % command)
+                    print(
+                        'Command "%s" does not appear to be running' % command
+                    )
 
             elif line:
                 # Launch a new command
 
                 try:
                     parsed_again_args = self.parser.parse_args(
-                        argv[1:] + split("--" + line.strip("- \t"))
+                        argv[1:] + split('--' + line.strip('- \t'))
                     )
 
                     old_number_of_modules = len(self.diag_input.modules)
 
                     self.parse_modules_args(parsed_again_args)
 
-                    if len(self.diag_input.modules) == old_number_of_modules + 1:
-                        command_to_module[line.strip()] = self.diag_input.modules[-1]
+                    if (
+                        len(self.diag_input.modules)
+                        == old_number_of_modules + 1
+                    ):
+                        command_to_module[line.strip()] = (
+                            self.diag_input.modules[-1]
+                        )
 
                         print(
                             'Command started in the background, you can stop it using "stop %s"'
@@ -113,7 +123,11 @@ class CommandLineInterface:
     def setup_readline(self):
 
         try:
-            from readline import parse_and_bind, set_completer, set_completer_delims
+            from readline import (
+                parse_and_bind,
+                set_completer,
+                set_completer_delims,
+            )
 
         except ImportError:
             pass
@@ -127,9 +141,9 @@ class CommandLineInterface:
 
                     matches = []
 
-                    for command_prefix in ["-", ""]:
+                    for command_prefix in ['-', '']:
                         matches += [
-                            arg.strip(command_prefix) + " "
+                            arg.strip(command_prefix) + ' '
                             for arg in self.parser._option_string_actions
                             if arg.strip(command_prefix).startswith(
                                 text.strip(command_prefix)
@@ -139,20 +153,22 @@ class CommandLineInterface:
                     # Match directories and files
 
                     matches += [
-                        path + "/" if isdir(path) else path + " "
-                        for path in glob(expanduser(text + "*"))
+                        path + '/' if isdir(path) else path + ' '
+                        for path in glob(expanduser(text + '*'))
                     ]
 
-                    return matches[nb_tries] if nb_tries < len(matches) else None
+                    return (
+                        matches[nb_tries] if nb_tries < len(matches) else None
+                    )
 
                 except Exception:
                     print_exc()
 
             set_completer(complete_command_or_path)
 
-            set_completer_delims(" \t\n")
+            set_completer_delims(' \t\n')
 
-            parse_and_bind("tab: complete")
+            parse_and_bind('tab: complete')
 
     """
         Print the help for the command-line prompt, adapting the original
@@ -163,20 +179,20 @@ class CommandLineInterface:
 
         help_text = self.parser.format_help()
 
-        _, help_modules_prefix, help_modules = help_text.partition("Modules:")
+        _, help_modules_prefix, help_modules = help_text.partition('Modules:')
 
-        help_modules, help_options_prefix, help_options = help_modules.partition(
-            "options:"
+        help_modules, help_options_prefix, help_options = (
+            help_modules.partition('options:')
         )
 
         print(
-            "\nCommand format: module_name [ARGUMENT] [--option [ARGUMENT]]\n\n"
+            '\nCommand format: module_name [ARGUMENT] [--option [ARGUMENT]]\n\n'
             + help_modules_prefix
-            + sub(r"--", "", help_modules)
+            + sub(r'--', '', help_modules)
             + help_options_prefix
-            + sub(r"--([\w-]+-dump)", r'"\1"', help_options)
+            + sub(r'--([\w-]+-dump)', r'"\1"', help_options)
         )
 
     def on_deinit(self):
 
-        print("")
+        print('')

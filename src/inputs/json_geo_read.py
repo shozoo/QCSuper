@@ -31,17 +31,17 @@ class JsonGeoReader(BaseInput):
 
             row = loads(row)
 
-            if "log_frame" in row:
+            if 'log_frame' in row:
                 log_type, log_frame, timestamp = (
-                    row["log_type"],
-                    b64decode(row["log_frame"]),
-                    row["timestamp"],
+                    row['log_type'],
+                    b64decode(row['log_frame']),
+                    row['timestamp'],
                 )
 
                 self.dispatch_diag_log(
                     log_type, log_frame[12:], log_frame[:12], timestamp
                 )
 
-            elif "lat" in row:
-                self.latitude = row["lat"]
-                self.longitude = row["lng"]
+            elif 'lat' in row:
+                self.latitude = row['lat']
+                self.longitude = row['lng']

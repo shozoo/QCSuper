@@ -61,3 +61,9 @@ packages = [
 "qcsuper.inputs.external.adb" = ["*"]
 "qcsuper.inputs.external.adb.lib64" = ["*"]
 "qcsuper.modules" = ["wireshark_plugin/*"]
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.format]
+quote-style = "single"

@@ -28,35 +28,35 @@ class MkdirCommand(BaseEfsShellCommand):
     ) -> ArgumentParser:
 
         argument_parser = subparsers_object.add_parser(
-            "mkdir",
-            description="Create a directory at the desired location with all permission bits set.",
+            'mkdir',
+            description='Create a directory at the desired location with all permission bits set.',
         )
 
-        argument_parser.add_argument("path")
+        argument_parser.add_argument('path')
 
         return argument_parser
 
     def execute_command(self, diag_input, args: Namespace):
-        if self.fs_type == "efs":
-            subsys_code = (
-                DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
-            )
-        elif self.fs_type == "efs2":
+        if self.fs_type == 'efs':
+            subsys_code = DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
+        elif self.fs_type == 'efs2':
             subsys_code = DIAG_SUBSYS_FS_ALTERNATE
         else:
-            raise ValueError("Invalid filesystem type specified.")
+            raise ValueError('Invalid filesystem type specified.')
         # Create the directory
 
         opcode, payload = diag_input.send_recv(
             DIAG_SUBSYS_CMD_F,
             pack(
-                "<BHh",
+                '<BHh',
                 subsys_code,  # Command subsystem number
                 EFS2_DIAG_MKDIR,
                 0o777 | 0o040000,  # S_IFDIR (directory) + all permissions
             )
-            + args.path.encode("latin1").decode("unicode_escape").encode("latin1")
-            + b"\x00",
+            + args.path.encode('latin1')
+            .decode('unicode_escape')
+            .encode('latin1')
+            + b'\x00',
             accept_error=True,
         )
 
@@ -67,11 +67,11 @@ class MkdirCommand(BaseEfsShellCommand):
             )
             return
 
-        (cmd_subsystem_id, subcommand_code, errno) = unpack("<BHi", payload)
+        (cmd_subsystem_id, subcommand_code, errno) = unpack('<BHi', payload)
 
         if errno:
             print(
-                "Error executing MKDIR: %s"
+                'Error executing MKDIR: %s'
                 % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
             )
             return

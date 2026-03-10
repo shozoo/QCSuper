@@ -28,24 +28,22 @@ class PutCommand(BaseEfsShellCommand):
     ) -> ArgumentParser:
 
         argument_parser = subparsers_object.add_parser(
-            "put",
-            description="Read a file from the local disk, and upload it to the EFS (create it if does not exist).",
+            'put',
+            description='Read a file from the local disk, and upload it to the EFS (create it if does not exist).',
         )
 
-        argument_parser.add_argument("local_src")
-        argument_parser.add_argument("remote_dst")
+        argument_parser.add_argument('local_src')
+        argument_parser.add_argument('remote_dst')
 
         return argument_parser
 
     def execute_command(self, diag_input, args: Namespace):
-        if self.fs_type == "efs":
-            subsys_code = (
-                DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
-            )
-        elif self.fs_type == "efs2":
+        if self.fs_type == 'efs':
+            subsys_code = DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
+        elif self.fs_type == 'efs2':
             subsys_code = DIAG_SUBSYS_FS_ALTERNATE
         else:
-            raise ValueError("Invalid filesystem type specified.")
+            raise ValueError('Invalid filesystem type specified.')
         local_src: str = expanduser(args.local_src)
         remote_dst: str = args.remote_dst
 
@@ -53,7 +51,7 @@ class PutCommand(BaseEfsShellCommand):
             print('Error: "%s" does not exist on your local disk' % local_src)
             return
 
-        with open(local_src, "rb") as input_file:
+        with open(local_src, 'rb') as input_file:
             # First, emit a stat() (EFS2_DIAG_STAT) call in order to understand whether
             # the remote target path input by the user is a directory or not, and to
             # know the UNIX mode of the original file in the case where it already
@@ -66,16 +64,20 @@ class PutCommand(BaseEfsShellCommand):
             opcode, payload = diag_input.send_recv(
                 DIAG_SUBSYS_CMD_F,
                 pack(
-                    "<BH",
+                    '<BH',
                     subsys_code,  # Command subsystem number
                     EFS2_DIAG_STAT,
                 )
-                + remote_dst.encode("latin1").decode("unicode_escape").encode("latin1")
-                + b"\x00",
+                + remote_dst.encode('latin1')
+                .decode('unicode_escape')
+                .encode('latin1')
+                + b'\x00',
                 accept_error=True,
             )
 
-            if opcode == DIAG_SUBSYS_CMD_F:  # No error, file or directory exists?
+            if (
+                opcode == DIAG_SUBSYS_CMD_F
+            ):  # No error, file or directory exists?
                 (
                     cmd_subsystem_id,
                     subcommand_code,
@@ -86,7 +88,7 @@ class PutCommand(BaseEfsShellCommand):
                     atime,
                     mtime,
                     ctime,
-                ) = unpack("<BH7i", payload)
+                ) = unpack('<BH7i', payload)
 
                 if not errno:
                     if file_mode & 0o170000 == 0o040000:  # S_IFDIR
@@ -96,21 +98,23 @@ class PutCommand(BaseEfsShellCommand):
                         file_mode_int = file_mode
 
             if is_directory:
-                remote_dst += "/" + basename(local_src)
+                remote_dst += '/' + basename(local_src)
 
             # Then, actually open the file for write and/or creation
 
             opcode, payload = diag_input.send_recv(
                 DIAG_SUBSYS_CMD_F,
                 pack(
-                    "<BHii",
+                    '<BHii',
                     subsys_code,  # Command subsystem number
                     EFS2_DIAG_OPEN,
                     0o1101,  # oflag - "O_WRONLY | O_TRUNC | O_CREAT "
                     file_mode_int,  # mode
                 )
-                + remote_dst.encode("latin1").decode("unicode_escape").encode("latin1")
-                + b"\x00",
+                + remote_dst.encode('latin1')
+                .decode('unicode_escape')
+                .encode('latin1')
+                + b'\x00',
                 accept_error=True,
             )
 
@@ -122,12 +126,12 @@ class PutCommand(BaseEfsShellCommand):
                 return
 
             (cmd_subsystem_id, subcommand_code, file_fd, errno) = unpack(
-                "<BHIi", payload
+                '<BHIi', payload
             )
 
             if errno:
                 print(
-                    "Error executing OPEN: %s"
+                    'Error executing OPEN: %s'
                     % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
                 )
                 return
@@ -145,7 +149,7 @@ class PutCommand(BaseEfsShellCommand):
                     opcode, payload = diag_input.send_recv(
                         DIAG_SUBSYS_CMD_F,
                         pack(
-                            "<BHiI",
+                            '<BHiI',
                             subsys_code,  # Command subsystem number
                             EFS2_DIAG_WRITE,
                             file_fd,  # File descriptor to write to
@@ -161,11 +165,11 @@ class PutCommand(BaseEfsShellCommand):
                         offset,
                         num_bytes_written,
                         errno,
-                    ) = unpack("<BHiIii", payload)
+                    ) = unpack('<BHiIii', payload)
 
                     if errno:
                         print(
-                            "Error executing WRITE: %s"
+                            'Error executing WRITE: %s'
                             % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
                         )
                         return
@@ -174,18 +178,20 @@ class PutCommand(BaseEfsShellCommand):
                 opcode, payload = diag_input.send_recv(
                     DIAG_SUBSYS_CMD_F,
                     pack(
-                        "<BHi",
+                        '<BHi',
                         subsys_code,  # Command subsystem number
                         EFS2_DIAG_CLOSE,
                         file_fd,
                     ),
                 )
 
-                (cmd_subsystem_id, subcommand_code, errno) = unpack("<BHi", payload)
+                (cmd_subsystem_id, subcommand_code, errno) = unpack(
+                    '<BHi', payload
+                )
 
                 if errno:
                     print(
-                        "Error executing CLOSE: %s"
+                        'Error executing CLOSE: %s'
                         % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
                     )
                     return

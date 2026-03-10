@@ -1,6 +1,11 @@
 #!/usr/bin/python3
 # -*- encoding: Utf-8 -*-
-from usb.util import find_descriptor, endpoint_direction, ENDPOINT_OUT, ENDPOINT_IN
+from usb.util import (
+    find_descriptor,
+    endpoint_direction,
+    ENDPOINT_OUT,
+    ENDPOINT_IN,
+)
 from usb.core import find, Device, Configuration, Interface, Endpoint, USBError
 from typing import Optional, Union, Dict, List, Sequence, Set, Any
 from os.path import exists, realpath, dirname, basename, islink
@@ -84,52 +89,54 @@ class SysbusMountFinder:
 
         self.mount_entries = []
 
-        for tty_dir in glob("/sys/bus/usb/devices/*/tty*"):
+        for tty_dir in glob('/sys/bus/usb/devices/*/tty*'):
             intf_path = realpath(dirname(tty_dir))
 
-            if ":" in basename(intf_path) and exists(intf_path + "/bInterfaceClass"):
+            if ':' in basename(intf_path) and exists(
+                intf_path + '/bInterfaceClass'
+            ):
                 dev_path = dirname(intf_path)
                 configuration_id = int(
-                    basename(intf_path).split(":")[1].split(".")[0], 10
+                    basename(intf_path).split(':')[1].split('.')[0], 10
                 )
 
-                with open(dev_path + "/idVendor") as fd:
+                with open(dev_path + '/idVendor') as fd:
                     vendor_id = int(fd.read().strip(), 16)
-                with open(dev_path + "/idProduct") as fd:
+                with open(dev_path + '/idProduct') as fd:
                     product_id = int(fd.read().strip(), 16)
 
-                with open(dev_path + "/busnum") as fd:
+                with open(dev_path + '/busnum') as fd:
                     bus_number = int(fd.read().strip(), 10)
-                with open(dev_path + "/devnum") as fd:
+                with open(dev_path + '/devnum') as fd:
                     dev_number = int(fd.read().strip(), 10)
 
-                with open(intf_path + "/bInterfaceNumber") as fd:
+                with open(intf_path + '/bInterfaceNumber') as fd:
                     interface_number = int(fd.read().strip(), 16)
-                with open(intf_path + "/bInterfaceClass") as fd:
+                with open(intf_path + '/bInterfaceClass') as fd:
                     interface_class = int(fd.read().strip(), 16)
-                with open(intf_path + "/bInterfaceSubClass") as fd:
+                with open(intf_path + '/bInterfaceSubClass') as fd:
                     interface_subclass = int(fd.read().strip(), 16)
-                with open(intf_path + "/bInterfaceProtocol") as fd:
+                with open(intf_path + '/bInterfaceProtocol') as fd:
                     interface_protocol = int(fd.read().strip(), 16)
-                with open(intf_path + "/bNumEndpoints") as fd:
+                with open(intf_path + '/bNumEndpoints') as fd:
                     num_endpoints = int(fd.read().strip(), 16)
 
-                if basename(tty_dir) != "tty":
+                if basename(tty_dir) != 'tty':
                     tty_subdirs = [tty_dir]
                 else:
                     tty_subdirs = [dir.path for dir in scandir(tty_dir)]
 
                 for tty_subdir in tty_subdirs:
                     char_dev_name = basename(tty_subdir)
-                    char_dev_path = "/dev/" + char_dev_name
+                    char_dev_path = '/dev/' + char_dev_name
 
                     hsotype = None
-                    if exists(tty_subdir + "/hsotype"):
-                        with open(tty_subdir + "/hsotype") as fd:
+                    if exists(tty_subdir + '/hsotype'):
+                        with open(tty_subdir + '/hsotype') as fd:
                             hsotype = fd.read().strip()
 
                     entry = SysbusMountEntry()
-                    if char_dev_name.startswith("ttyHS"):
+                    if char_dev_name.startswith('ttyHS'):
                         entry.mount_type = SysbusMountType.hsoserial_device
                     else:
                         entry.mount_type = SysbusMountType.usbserial_device
@@ -149,7 +156,9 @@ class SysbusMountFinder:
 
                     self.mount_entries.append(entry)
 
-    def find_entry(self, dev_intf: "PyusbDevInterface") -> Optional[SysbusMountEntry]:
+    def find_entry(
+        self, dev_intf: 'PyusbDevInterface'
+    ) -> Optional[SysbusMountEntry]:
 
         for entry in self.mount_entries:
             if (
@@ -158,8 +167,10 @@ class SysbusMountFinder:
                 and
                 # dev_intf.device.idVendor == entry.vendor_id and
                 # dev_intf.device.idProduct == entry.product_id and
-                dev_intf.configuration.bConfigurationValue == entry.configuration_id
-                and dev_intf.interface.bInterfaceNumber == entry.interface_number
+                dev_intf.configuration.bConfigurationValue
+                == entry.configuration_id
+                and dev_intf.interface.bInterfaceNumber
+                == entry.interface_number
             ):
                 return entry
 
@@ -208,7 +219,9 @@ class PyusbDevInterface:
             self._find_auto()
 
         else:
-            raise ValueError("Not a valid UsbModemArgType value")  # unreachable
+            raise ValueError(
+                'Not a valid UsbModemArgType value'
+            )  # unreachable
 
         if not self.not_found_reason:
             self._find_endpoints()
@@ -220,11 +233,11 @@ class PyusbDevInterface:
     def from_bus_port(cls, bus_idx: int, port_idx: int):
         self = cls()
 
-        base_path = "/sys/bus/usb/devices/%d-%d/" % (bus_idx, port_idx)
+        base_path = '/sys/bus/usb/devices/%d-%d/' % (bus_idx, port_idx)
 
-        with open(base_path + "busnum") as fd:
+        with open(base_path + 'busnum') as fd:
             bus_num = int(fd.read().strip(), 10)
-        with open(base_path + "devnum") as fd:
+        with open(base_path + 'devnum') as fd:
             dev_num = int(fd.read().strip(), 10)
 
         self._find_by_bus_device(bus_num, dev_num)
@@ -270,10 +283,14 @@ class PyusbDevInterface:
                     None,
                 )
                 if self.interface:
-                    self.configuration = self.device[self.interface.configuration]
+                    self.configuration = self.device[
+                        self.interface.configuration
+                    ]
                     break
             else:
-                self.not_found_reason = PyusbDevNotFoundReason.intf_criteria_not_guessed
+                self.not_found_reason = (
+                    PyusbDevNotFoundReason.intf_criteria_not_guessed
+                )
         else:
             try:
                 self.configuration = (
@@ -282,26 +299,34 @@ class PyusbDevInterface:
                 )
                 try:
                     self.interface = (
-                        find_descriptor(self.configuration, bInterfaceNumber=intf_id)
+                        find_descriptor(
+                            self.configuration, bInterfaceNumber=intf_id
+                        )
                         or self.configuration[intf_id]
                     )
                 except USBError:
-                    self.not_found_reason = PyusbDevNotFoundReason.intf_code_not_found
+                    self.not_found_reason = (
+                        PyusbDevNotFoundReason.intf_code_not_found
+                    )
             except USBError:
-                self.not_found_reason = PyusbDevNotFoundReason.cfg_code_not_found
+                self.not_found_reason = (
+                    PyusbDevNotFoundReason.cfg_code_not_found
+                )
 
     def _find_endpoints(self):
         if self.interface:
             self.read_endpoint = find_descriptor(
                 self.interface,
                 custom_match=lambda endpoint: (
-                    endpoint_direction(endpoint.bEndpointAddress) == ENDPOINT_IN
+                    endpoint_direction(endpoint.bEndpointAddress)
+                    == ENDPOINT_IN
                 ),
             )
             self.write_endpoint = find_descriptor(
                 self.interface,
                 custom_match=lambda endpoint: (
-                    endpoint_direction(endpoint.bEndpointAddress) == ENDPOINT_OUT
+                    endpoint_direction(endpoint.bEndpointAddress)
+                    == ENDPOINT_OUT
                 ),
             )
 
@@ -311,7 +336,11 @@ class PyusbDevInterface:
             self.chardev_if_mounted = sysbus_entry.chardev_path
 
     def _find_by_bus_device(
-        self, bus_id: int, device_id: int, cfg_id: int = None, intf_id: int = None
+        self,
+        bus_id: int,
+        device_id: int,
+        cfg_id: int = None,
+        intf_id: int = None,
     ):
 
         self.device: Optional[Device] = find(bus=bus_id, address=device_id)
@@ -334,9 +363,13 @@ class PyusbDevInterface:
                 )
                 if self.interface:
                     self.device = device
-                    self.configuration = self.device[self.interface.configuration]
+                    self.configuration = self.device[
+                        self.interface.configuration
+                    ]
                     break
             if self.interface:
                 break
         else:
-            self.not_found_reason = PyusbDevNotFoundReason.auto_criteria_did_not_match
+            self.not_found_reason = (
+                PyusbDevNotFoundReason.auto_criteria_did_not_match
+            )

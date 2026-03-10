@@ -11,7 +11,10 @@ from time import time
 
 RRC3G.ASN1Obj._SILENT = True
 
-from ..modules._enable_log_mixin import EnableLogMixin, TYPES_FOR_RAW_PACKET_LOGGING
+from ..modules._enable_log_mixin import (
+    EnableLogMixin,
+    TYPES_FOR_RAW_PACKET_LOGGING,
+)
 
 """
     This module decodes SIBs from 3G RRC frames, independantly of the input
@@ -23,48 +26,48 @@ from ..modules._enable_log_mixin import EnableLogMixin, TYPES_FOR_RAW_PACKET_LOG
 """
 
 SIB_NAME_TO_CLASS = {
-    "masterInformationBlock": RRC3G.InformationElements.MasterInformationBlock,
-    "systemInformationBlockType1": RRC3G.InformationElements.SysInfoType1,
-    "systemInformationBlockType2": RRC3G.InformationElements.SysInfoType2,
-    "systemInformationBlockType3": RRC3G.InformationElements.SysInfoType3,
-    "systemInformationBlockType4": RRC3G.InformationElements.SysInfoType4,
-    "systemInformationBlockType5": RRC3G.InformationElements.SysInfoType5,
-    "systemInformationBlockType6": RRC3G.InformationElements.SysInfoType6,
-    "systemInformationBlockType7": RRC3G.InformationElements.SysInfoType7,
-    "systemInformationBlockType11": RRC3G.InformationElements.SysInfoType11,
-    "systemInformationBlockType12": RRC3G.InformationElements.SysInfoType12,
-    "systemInformationBlockType13": RRC3G.InformationElements.SysInfoType13,
-    "systemInformationBlockType13-1": RRC3G.InformationElements.SysInfoType13_1,
-    "systemInformationBlockType13-2": RRC3G.InformationElements.SysInfoType13_2,
-    "systemInformationBlockType13-3": RRC3G.InformationElements.SysInfoType13_3,
-    "systemInformationBlockType13-4": RRC3G.InformationElements.SysInfoType13_4,
-    "systemInformationBlockType14": RRC3G.InformationElements.SysInfoType14,
-    "systemInformationBlockType15": RRC3G.InformationElements.SysInfoType15,
-    "systemInformationBlockType15-1": RRC3G.InformationElements.SysInfoType15_1,
-    "systemInformationBlockType15-2": RRC3G.InformationElements.SysInfoType15_2,
-    "systemInformationBlockType15-3": RRC3G.InformationElements.SysInfoType15_3,
-    "systemInformationBlockType16": RRC3G.InformationElements.SysInfoType16,
-    "systemInformationBlockType17": RRC3G.InformationElements.SysInfoType17,
-    "systemInformationBlockType15-4": RRC3G.InformationElements.SysInfoType15_4,
-    "systemInformationBlockType18": RRC3G.InformationElements.SysInfoType18,
-    "schedulingBlock1": RRC3G.InformationElements.SysInfoTypeSB1,
-    "schedulingBlock2": RRC3G.InformationElements.SysInfoTypeSB2,
-    "systemInformationBlockType15-5": RRC3G.InformationElements.SysInfoType15_5,
-    "systemInformationBlockType5bis": RRC3G.InformationElements.SysInfoType5bis,
+    'masterInformationBlock': RRC3G.InformationElements.MasterInformationBlock,
+    'systemInformationBlockType1': RRC3G.InformationElements.SysInfoType1,
+    'systemInformationBlockType2': RRC3G.InformationElements.SysInfoType2,
+    'systemInformationBlockType3': RRC3G.InformationElements.SysInfoType3,
+    'systemInformationBlockType4': RRC3G.InformationElements.SysInfoType4,
+    'systemInformationBlockType5': RRC3G.InformationElements.SysInfoType5,
+    'systemInformationBlockType6': RRC3G.InformationElements.SysInfoType6,
+    'systemInformationBlockType7': RRC3G.InformationElements.SysInfoType7,
+    'systemInformationBlockType11': RRC3G.InformationElements.SysInfoType11,
+    'systemInformationBlockType12': RRC3G.InformationElements.SysInfoType12,
+    'systemInformationBlockType13': RRC3G.InformationElements.SysInfoType13,
+    'systemInformationBlockType13-1': RRC3G.InformationElements.SysInfoType13_1,
+    'systemInformationBlockType13-2': RRC3G.InformationElements.SysInfoType13_2,
+    'systemInformationBlockType13-3': RRC3G.InformationElements.SysInfoType13_3,
+    'systemInformationBlockType13-4': RRC3G.InformationElements.SysInfoType13_4,
+    'systemInformationBlockType14': RRC3G.InformationElements.SysInfoType14,
+    'systemInformationBlockType15': RRC3G.InformationElements.SysInfoType15,
+    'systemInformationBlockType15-1': RRC3G.InformationElements.SysInfoType15_1,
+    'systemInformationBlockType15-2': RRC3G.InformationElements.SysInfoType15_2,
+    'systemInformationBlockType15-3': RRC3G.InformationElements.SysInfoType15_3,
+    'systemInformationBlockType16': RRC3G.InformationElements.SysInfoType16,
+    'systemInformationBlockType17': RRC3G.InformationElements.SysInfoType17,
+    'systemInformationBlockType15-4': RRC3G.InformationElements.SysInfoType15_4,
+    'systemInformationBlockType18': RRC3G.InformationElements.SysInfoType18,
+    'schedulingBlock1': RRC3G.InformationElements.SysInfoTypeSB1,
+    'schedulingBlock2': RRC3G.InformationElements.SysInfoTypeSB2,
+    'systemInformationBlockType15-5': RRC3G.InformationElements.SysInfoType15_5,
+    'systemInformationBlockType5bis': RRC3G.InformationElements.SysInfoType5bis,
     # Extensions
-    "systemInfoType11bis": RRC3G.InformationElements.SysInfoType11bis,
-    "systemInfoType15bis": RRC3G.InformationElements.SysInfoType15bis,
-    "systemInfoType15-1bis": RRC3G.InformationElements.SysInfoType15_1bis,
-    "systemInfoType15-2bis": RRC3G.InformationElements.SysInfoType15_2bis,
-    "systemInfoType15-3bis": RRC3G.InformationElements.SysInfoType15_3bis,
-    "systemInfoType15-6": RRC3G.InformationElements.SysInfoType15_6,
-    "systemInfoType15-7": RRC3G.InformationElements.SysInfoType15_7,
-    "systemInfoType15-8": RRC3G.InformationElements.SysInfoType15_8,
-    "systemInfoType19": RRC3G.InformationElements.SysInfoType19,
-    "systemInfoType15-2ter": RRC3G.InformationElements.SysInfoType15_2ter,
-    "systemInfoType20": RRC3G.InformationElements.SysInfoType20,
-    "systemInfoType21": RRC3G.InformationElements.SysInfoType21,
-    "systemInfoType22": RRC3G.InformationElements.SysInfoType22,
+    'systemInfoType11bis': RRC3G.InformationElements.SysInfoType11bis,
+    'systemInfoType15bis': RRC3G.InformationElements.SysInfoType15bis,
+    'systemInfoType15-1bis': RRC3G.InformationElements.SysInfoType15_1bis,
+    'systemInfoType15-2bis': RRC3G.InformationElements.SysInfoType15_2bis,
+    'systemInfoType15-3bis': RRC3G.InformationElements.SysInfoType15_3bis,
+    'systemInfoType15-6': RRC3G.InformationElements.SysInfoType15_6,
+    'systemInfoType15-7': RRC3G.InformationElements.SysInfoType15_7,
+    'systemInfoType15-8': RRC3G.InformationElements.SysInfoType15_8,
+    'systemInfoType19': RRC3G.InformationElements.SysInfoType19,
+    'systemInfoType15-2ter': RRC3G.InformationElements.SysInfoType15_2ter,
+    'systemInfoType20': RRC3G.InformationElements.SysInfoType20,
+    'systemInfoType21': RRC3G.InformationElements.SysInfoType21,
+    'systemInfoType22': RRC3G.InformationElements.SysInfoType22,
 }
 
 """
@@ -73,7 +76,9 @@ SIB_NAME_TO_CLASS = {
     otherwise (they're specified with the "extensionType" type)
 """
 
-SIBSchedule = namedtuple("SIBSchedule", ["sib_period", "sib_position", "num_segments"])
+SIBSchedule = namedtuple(
+    'SIBSchedule', ['sib_period', 'sib_position', 'num_segments']
+)
 
 bearer_to_sib_schedule_to_sib_type = defaultdict(dict)
 
@@ -87,7 +92,9 @@ class SIB:
 
         self.segment_bitstrings = []  # A list of bit sequences tuples consumable by Pycrate's pack_val module
 
-        self.first_sfn = None  # First SFN for the RRC frame containing this SIB
+        self.first_sfn = (
+            None  # First SFN for the RRC frame containing this SIB
+        )
 
         self.last_sfn = None  # Lastest received SFN
 
@@ -111,9 +118,9 @@ class SIB:
             len(self.segment_bitstrings) != segment_index
         ):
             on_sib_decoding_error(
-                "DEBUG: Uncomplete %s reassembly: SFN jump from %s to %s (%d), index expected to be %d but is %d"
+                'DEBUG: Uncomplete %s reassembly: SFN jump from %s to %s (%d), index expected to be %d but is %d'
                 % (
-                    getattr(self, "sib_type", sib_type),
+                    getattr(self, 'sib_type', sib_type),
                     self.last_sfn,
                     sfn_prime,
                     sfn_prime - (self.last_sfn or 0),
@@ -147,20 +154,22 @@ class SIB:
                     block."
             """
 
-            if sib_type == "extensionType":
-                for sib_schedule, sib_ext_type in bearer_to_sib_schedule_to_sib_type[
-                    radio_bearer
-                ].items():
+            if sib_type == 'extensionType':
+                for (
+                    sib_schedule,
+                    sib_ext_type,
+                ) in bearer_to_sib_schedule_to_sib_type[radio_bearer].items():
                     if (
                         self.first_sfn % sib_schedule.sib_period
                         == sib_schedule.sib_position
-                        and len(self.segment_bitstrings) == sib_schedule.num_segments
+                        and len(self.segment_bitstrings)
+                        == sib_schedule.num_segments
                     ):
                         self.sib_type = sib_type = sib_ext_type
 
-            if sib_type == "extensionType":
+            if sib_type == 'extensionType':
                 on_sib_decoding_error(
-                    "DEBUG: Received an extensionType SIB with SFN %d for which no scheduling information is known from MIB/SBs"
+                    'DEBUG: Received an extensionType SIB with SFN %d for which no scheduling information is known from MIB/SBs'
                     % sfn_prime
                 )
                 return
@@ -171,7 +180,7 @@ class SIB:
                 sib_object.from_uper(sib_byte_string)
             except Exception:
                 on_sib_decoding_error(
-                    "ERROR: SIB decoding failed for %s (%s): %s"
+                    'ERROR: SIB decoding failed for %s (%s): %s'
                     % (sib_type, repr(sib_byte_string), format_exc())
                 )
                 return
@@ -195,7 +204,7 @@ bearer_to_sib_type_to_sib = defaultdict(lambda: defaultdict(SIB))
 def print_decoded_sib(sib_type, sib_dict, sib_bytes, rrc_sfn, timestamp):
 
     print()
-    print(sib_type, "=>", sib_dict)
+    print(sib_type, '=>', sib_dict)
 
 
 def print_sib_decoding_error(decoding_error):
@@ -222,7 +231,7 @@ class DecodedSibsDumper(EnableLogMixin):
 
         if log_type == WCDMA_SIGNALLING_MESSAGE:  # 0x412f
             (channel_type, radio_bearer, length), signalling_message = (
-                unpack("<BBH", log_payload[:4]),
+                unpack('<BBH', log_payload[:4]),
                 log_payload[4:],
             )
 
@@ -252,7 +261,7 @@ class DecodedSibsDumper(EnableLogMixin):
 
             if pycrate_class is None:
                 warning(
-                    "Unknown log type received for WCDMA_SIGNALLING_MESSAGE: %d"
+                    'Unknown log type received for WCDMA_SIGNALLING_MESSAGE: %d'
                     % channel_type
                 )
                 return
@@ -266,29 +275,33 @@ class DecodedSibsDumper(EnableLogMixin):
                 rrc_object.from_uper(packet)
             except Exception:
                 self.on_sib_decoding_error(
-                    "ERROR: RRC decoding failed (%s): %s" % (repr(packet), format_exc())
+                    'ERROR: RRC decoding failed (%s): %s'
+                    % (repr(packet), format_exc())
                 )
                 return
 
-            message = rrc_object()["message"]
+            message = rrc_object()['message']
 
             if type(message) == dict:
                 """
                     Deal with firstSegment, subsequentSegment, lastSegmentShort, etc.
                 """
 
-                rrc_payload_type, rrc_payload = message["payload"]
+                rrc_payload_type, rrc_payload = message['payload']
 
                 # rrc_payload should be made like {'kind_of_segment': dict_representing_the_segment}
 
-                if "And" not in rrc_payload_type:
+                if 'And' not in rrc_payload_type:
                     rrc_payload = {rrc_payload_type: rrc_payload}
 
-                for rrc_item_type, rrc_item in sorted(dict(rrc_payload).items()):
-                    if "-List" in rrc_item_type:
+                for rrc_item_type, rrc_item in sorted(
+                    dict(rrc_payload).items()
+                ):
+                    if '-List' in rrc_item_type:
                         for list_item_nb, list_item in enumerate(rrc_item):
                             rrc_payload[
-                                rrc_item_type.replace("-List", "") + str(list_item_nb)
+                                rrc_item_type.replace('-List', '')
+                                + str(list_item_nb)
                             ] = list_item
 
                         del rrc_payload[rrc_item_type]
@@ -302,31 +315,34 @@ class DecodedSibsDumper(EnableLogMixin):
                     is_final = False  # Is this the last segment?
                     segment_index = 0
                     segment_data_int, segment_data_bitlen = (
-                        rrc_item.get("sib-Data-fixed") or rrc_item["sib-Data-variable"]
+                        rrc_item.get('sib-Data-fixed')
+                        or rrc_item['sib-Data-variable']
                     )
 
-                    if rrc_item_type == "firstSegment":
+                    if rrc_item_type == 'firstSegment':
                         segment_index = 0
 
-                    elif rrc_item_type == "subsequentSegment":
-                        segment_index = rrc_item["segmentIndex"]
+                    elif rrc_item_type == 'subsequentSegment':
+                        segment_index = rrc_item['segmentIndex']
 
-                    elif rrc_item_type in ("lastSegment", "lastSegmentShort"):
-                        segment_index = rrc_item["segmentIndex"]
+                    elif rrc_item_type in ('lastSegment', 'lastSegmentShort'):
+                        segment_index = rrc_item['segmentIndex']
                         is_final = True
 
-                    elif "completeSIB" in rrc_item_type:
+                    elif 'completeSIB' in rrc_item_type:
                         segment_index = 0
                         is_final = True
 
                     else:
                         raise NotImplementedError
 
-                    sib_type = rrc_item["sib-Type"]
-                    sib_py_class = bearer_to_sib_type_to_sib[radio_bearer][sib_type]
+                    sib_type = rrc_item['sib-Type']
+                    sib_py_class = bearer_to_sib_type_to_sib[radio_bearer][
+                        sib_type
+                    ]
                     decoded_sib = sib_py_class.add_segment_and_decode(
                         radio_bearer,
-                        message["sfn-Prime"],
+                        message['sfn-Prime'],
                         sib_type,
                         segment_index,
                         is_final,
@@ -342,7 +358,7 @@ class DecodedSibsDumper(EnableLogMixin):
                             sib_type,
                             sib_dict,
                             sib_bytes,
-                            message["sfn-Prime"],
+                            message['sfn-Prime'],
                             timestamp,
                         )
 
@@ -353,43 +369,54 @@ class DecodedSibsDumper(EnableLogMixin):
                         message_exts = dict(sib_dict)
 
                         for extension_level in [
-                            "v690NonCriticalExtensions",
-                            "v6b0NonCriticalExtensions",
-                            "masterInformationBlock-v6b0ext",
-                            "sysInfoTypeSB1-v6b0ext",
-                            "sysInfoTypeSB2-v6b0ext",
-                            "v860NonCriticalExtensions",
-                            "masterInformationBlock-v860ext",
-                            "sysInfoTypeSB1-v860ext",
-                            "sysInfoTypeSB2-v860ext",
+                            'v690NonCriticalExtensions',
+                            'v6b0NonCriticalExtensions',
+                            'masterInformationBlock-v6b0ext',
+                            'sysInfoTypeSB1-v6b0ext',
+                            'sysInfoTypeSB2-v6b0ext',
+                            'v860NonCriticalExtensions',
+                            'masterInformationBlock-v860ext',
+                            'sysInfoTypeSB1-v860ext',
+                            'sysInfoTypeSB2-v860ext',
                         ]:
                             if extension_level in message_exts:
-                                message_exts.update(message_exts[extension_level])
-
-                                extension_sibs = message_exts[extension_level].get(
-                                    "extSIBTypeInfoSchedulingInfo-List"
+                                message_exts.update(
+                                    message_exts[extension_level]
                                 )
+
+                                extension_sibs = message_exts[
+                                    extension_level
+                                ].get('extSIBTypeInfoSchedulingInfo-List')
                                 if extension_sibs:
                                     for extension_sib in extension_sibs:
                                         sib_type = (
-                                            extension_sib.get("extensionSIB-Type")
-                                            or extension_sib["extensionSIB-Type2"]
+                                            extension_sib.get(
+                                                'extensionSIB-Type'
+                                            )
+                                            or extension_sib[
+                                                'extensionSIB-Type2'
+                                            ]
                                         )
                                         sib_type = sib_type[0]
 
-                                        sib_period, sib_position = extension_sib[
-                                            "schedulingInfo"
-                                        ]["scheduling"]["sib-Pos"]
+                                        sib_period, sib_position = (
+                                            extension_sib['schedulingInfo'][
+                                                'scheduling'
+                                            ]['sib-Pos']
+                                        )
                                         sib_period = (
-                                            int(sib_period.replace("rep", "")) // 2
+                                            int(sib_period.replace('rep', ''))
+                                            // 2
                                         )
 
-                                        num_segments = extension_sib["schedulingInfo"][
-                                            "scheduling"
-                                        ]["segCount"]
+                                        num_segments = extension_sib[
+                                            'schedulingInfo'
+                                        ]['scheduling']['segCount']
 
                                         sib_schedule = SIBSchedule(
-                                            sib_period, sib_position, num_segments
+                                            sib_period,
+                                            sib_position,
+                                            num_segments,
                                         )
 
                                         bearer_to_sib_schedule_to_sib_type[

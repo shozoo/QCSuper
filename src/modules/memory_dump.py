@@ -39,9 +39,7 @@ class MemoryReaderState(IntEnum):
     READING_FORWARD_10_BY_10 = 2
 
 
-CLEAR_LINE = (
-    "\x1b[2K"  # From https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
-)
+CLEAR_LINE = '\x1b[2K'  # From https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
 
 
 class MemoryDumper:
@@ -80,25 +78,25 @@ class MemoryDumper:
             if state != MemoryReaderState.READING_FORWARD_10_BY_10:
                 print(
                     CLEAR_LINE
-                    + "Trying to read at %08x/%08x (%.1f%%)..."
+                    + 'Trying to read at %08x/%08x (%.1f%%)...'
                     % (
                         current_address,
                         self.end_address,
                         current_address / self.end_address * 100,
                     ),
-                    end="\r",
+                    end='\r',
                 )
 
             else:
                 print(
                     CLEAR_LINE
-                    + "Reading at %08x/%08x (%.1f%%)..."
+                    + 'Reading at %08x/%08x (%.1f%%)...'
                     % (
                         current_address,
                         self.end_address,
                         current_address / self.end_address * 100,
                     ),
-                    end="\r",
+                    end='\r',
                 )
 
             """
@@ -106,11 +104,13 @@ class MemoryDumper:
             """
 
             opcode, payload = self.diag_input.send_recv(
-                DIAG_PEEKB_F, pack("<IH", current_address, 16), accept_error=True
+                DIAG_PEEKB_F,
+                pack('<IH', current_address, 16),
+                accept_error=True,
             )
 
             if opcode == DIAG_PEEKB_F:  # Read succeeded
-                address_read, bytes_read, contents = unpack("<IH16s", payload)
+                address_read, bytes_read, contents = unpack('<IH16s', payload)
                 assert address_read == current_address and bytes_read == 16
 
                 # We hit redable data in the middle of a chunk will trying to
@@ -124,17 +124,15 @@ class MemoryDumper:
                 # write the contents to a file.
 
                 elif state == MemoryReaderState.READING_FORWARD_10_BY_10:
-                    if (
-                        not output_file
-                    ):  # Open the output file if we're writing to an new chunk.
+                    if not output_file:  # Open the output file if we're writing to an new chunk.
                         current_chunk_base_address = current_address
 
-                        output_file_name = "%s/chunk_%08x" % (
+                        output_file_name = '%s/chunk_%08x' % (
                             self.output_dir,
                             current_chunk_base_address,
                         )
 
-                        output_file = open(output_file_name, "wb")
+                        output_file = open(output_file_name, 'wb')
 
                     output_file.write(contents)
 
@@ -147,7 +145,8 @@ class MemoryDumper:
                     state = MemoryReaderState.READING_FORWARD_10_BY_10
 
                     print(
-                        CLEAR_LINE + "Found memory at %08x" % (current_address + 0x10)
+                        CLEAR_LINE
+                        + 'Found memory at %08x' % (current_address + 0x10)
                     )
 
                 # We hit the word right after the end of a memory chunk when
@@ -156,10 +155,12 @@ class MemoryDumper:
                 elif state == MemoryReaderState.READING_FORWARD_10_BY_10:
                     state = MemoryReaderState.LOOKING_FORWARD_1000_BY_1000
 
-                    if output_file:  # Close the current output file and print status.
+                    if (
+                        output_file
+                    ):  # Close the current output file and print status.
                         print(
                             CLEAR_LINE
-                            + "Memory at %08x had length %08x\n"
+                            + 'Memory at %08x had length %08x\n'
                             % (current_chunk_base_address, output_file.tell())
                         )
 
@@ -169,7 +170,7 @@ class MemoryDumper:
             else:  # Command refused
                 print(
                     CLEAR_LINE
-                    + "Dumping memory seems not to be supported on this device"
+                    + 'Dumping memory seems not to be supported on this device'
                 )
 
                 break

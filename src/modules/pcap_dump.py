@@ -10,15 +10,26 @@ from logging import warning, debug
 from sys import platform
 import gzip
 
-from ..modules._enable_log_mixin import EnableLogMixin, TYPES_FOR_RAW_PACKET_LOGGING, TYPES_FOR_IP_TRAFFIC_LOGGING
+from ..modules._enable_log_mixin import (
+    EnableLogMixin,
+    TYPES_FOR_RAW_PACKET_LOGGING,
+    TYPES_FOR_IP_TRAFFIC_LOGGING,
+)
 from ..modules.decoded_sibs_dump import DecodedSibsDumper
 
 MODULES_DIR = realpath(dirname(__file__))
-SRC_WIRESHARK_PLUGIN_DIR = realpath(MODULES_DIR + "/wireshark_plugin")
+SRC_WIRESHARK_PLUGIN_DIR = realpath(MODULES_DIR + '/wireshark_plugin')
 
 
 try:
-    from os import setpgrp, getenv, setresgid, setresuid, setgroups, getgrouplist
+    from os import (
+        setpgrp,
+        getenv,
+        setresgid,
+        setresuid,
+        setgroups,
+        getgrouplist,
+    )
     from pwd import getpwuid
 
     IS_UNIX = True
@@ -46,7 +57,12 @@ _DPL_LOG_TYPES = {
 
 class PcapDumper(DecodedSibsDumper):
     def __init__(
-        self, diag_input, pcap_file, reassemble_sibs, decrypt_nas, include_ip_traffic
+        self,
+        diag_input,
+        pcap_file,
+        reassemble_sibs,
+        decrypt_nas,
+        include_ip_traffic,
     ):
 
         self.pcap_file = pcap_file
@@ -58,7 +74,7 @@ class PcapDumper(DecodedSibsDumper):
         if not self.pcap_file.appending_to_file:
             self.pcap_file.write(
                 pack(
-                    "<IHHi4xII",
+                    '<IHHi4xII',
                     0xA1B2C3D4,  # PCAP Magic
                     2,
                     4,  # Version
@@ -74,7 +90,9 @@ class PcapDumper(DecodedSibsDumper):
         if include_ip_traffic:
             self.limit_registered_logs += TYPES_FOR_IP_TRAFFIC_LOGGING
 
-        self.current_rat = None  # Radio access technology: "2g", "3g", "4g", "5g"
+        self.current_rat = (
+            None  # Radio access technology: "2g", "3g", "4g", "5g"
+        )
 
         # Per-IFname DPL fragment reassembly state.
         # Keyed by IFname (DPL header bytes[2:3]); each value holds
@@ -103,16 +121,20 @@ class PcapDumper(DecodedSibsDumper):
         # See: https://docs.python.org/3/library/os.path.html#os.path.expandvars
         # See: https://docs.python.org/3/library/sys.html#sys.platform
 
-        if getenv("DONT_INSTALL_WIRESHARK_PLUGIN"):
+        if getenv('DONT_INSTALL_WIRESHARK_PLUGIN'):
             return
 
-        if platform in ("win32", "cygwin"):
-            DST_WIRESHARK_PLUGIN_DIR = expandvars("%APPDATA%\\Wireshark\\plugins")
+        if platform in ('win32', 'cygwin'):
+            DST_WIRESHARK_PLUGIN_DIR = expandvars(
+                '%APPDATA%\\Wireshark\\plugins'
+            )
 
         else:
-            DST_WIRESHARK_PLUGIN_DIR = expandvars("$HOME/.local/lib/wireshark/plugins")
+            DST_WIRESHARK_PLUGIN_DIR = expandvars(
+                '$HOME/.local/lib/wireshark/plugins'
+            )
 
-        if "%" in DST_WIRESHARK_PLUGIN_DIR or "$" in DST_WIRESHARK_PLUGIN_DIR:
+        if '%' in DST_WIRESHARK_PLUGIN_DIR or '$' in DST_WIRESHARK_PLUGIN_DIR:
             return  # Variable expansion did not work
 
         try:
@@ -120,8 +142,8 @@ class PcapDumper(DecodedSibsDumper):
 
             for file_name in listdir(SRC_WIRESHARK_PLUGIN_DIR):
                 copy2(
-                    SRC_WIRESHARK_PLUGIN_DIR + "/" + file_name,
-                    DST_WIRESHARK_PLUGIN_DIR + "/" + file_name,
+                    SRC_WIRESHARK_PLUGIN_DIR + '/' + file_name,
+                    DST_WIRESHARK_PLUGIN_DIR + '/' + file_name,
                 )
 
         except OSError:
@@ -137,14 +159,17 @@ class PcapDumper(DecodedSibsDumper):
         packet = None
 
         if log_type == WCDMA_SIGNALLING_MESSAGE:  # 0x412f
-            self.current_rat = "3g"
+            self.current_rat = '3g'
 
             (channel_type, radio_bearer, length), signalling_message = (
-                unpack("<BBH", log_payload[:4]),
+                unpack('<BBH', log_payload[:4]),
                 log_payload[4:],
             )
 
-            is_uplink = channel_type in (RRCLOG_SIG_UL_CCCH, RRCLOG_SIG_UL_DCCH)
+            is_uplink = channel_type in (
+                RRCLOG_SIG_UL_CCCH,
+                RRCLOG_SIG_UL_DCCH,
+            )
 
             # GSMTAP definition:
             # - https://github.com/wireshark/wireshark/blob/wireshark-2.5.0/epan/dissectors/packet-gsmtap.h
@@ -163,7 +188,9 @@ class PcapDumper(DecodedSibsDumper):
             ):
                 return  # Frames containing only a MIB or extension SIB, as already present in RRC frames, ignoring
 
-            if channel_type >= 0x80:  # We are in presence of an explicit ARFCN/PSC
+            if (
+                channel_type >= 0x80
+            ):  # We are in presence of an explicit ARFCN/PSC
                 channel_type -= 0x80
                 signalling_message = signalling_message[4:]
 
@@ -183,7 +210,7 @@ class PcapDumper(DecodedSibsDumper):
 
             if gsmtap_channel_type is None:
                 warning(
-                    "Unknown log type received for WCDMA_SIGNALLING_MESSAGE: %d"
+                    'Unknown log type received for WCDMA_SIGNALLING_MESSAGE: %d'
                     % channel_type
                 )
                 return
@@ -193,10 +220,10 @@ class PcapDumper(DecodedSibsDumper):
             )
 
         elif log_type == LOG_GSM_RR_SIGNALING_MESSAGE_C:  # 0x512f
-            self.current_rat = "2g"
+            self.current_rat = '2g'
 
             (channel_type, message_type, length), signalling_message = (
-                unpack("<BBB", log_payload[:3]),
+                unpack('<BBB', log_payload[:3]),
                 log_payload[3:],
             )
 
@@ -222,7 +249,7 @@ class PcapDumper(DecodedSibsDumper):
 
             if gsmtap_channel_type is None:
                 warning(
-                    "Unknown log type received for LOG_GSM_RR_SIGNALING_MESSAGE_C: %d"
+                    'Unknown log type received for LOG_GSM_RR_SIGNALING_MESSAGE_C: %d'
                     % channel_type
                 )
                 return
@@ -236,7 +263,10 @@ class PcapDumper(DecodedSibsDumper):
 
             interface_type = GSMTAP_TYPE_ABIS
 
-            if gsmtap_channel_type in (GSMTAP_CHANNEL_BCCH, GSMTAP_CHANNEL_CCCH):
+            if gsmtap_channel_type in (
+                GSMTAP_CHANNEL_BCCH,
+                GSMTAP_CHANNEL_CCCH,
+            ):
                 packet = packet[1:]
 
             packet = build_gsmtap_ip(
@@ -245,7 +275,7 @@ class PcapDumper(DecodedSibsDumper):
 
         elif log_type == LOG_GPRS_MAC_SIGNALLING_MESSAGE_C:  # 0x5226
             (channel_type, message_type, length), signalling_message = (
-                unpack("<BBB", log_payload[:3]),
+                unpack('<BBB', log_payload[:3]),
                 log_payload[3:],
             )
 
@@ -254,9 +284,14 @@ class PcapDumper(DecodedSibsDumper):
 
             # This contains the whole RLC/MAC header
 
-            PAYLOAD_TYPE_CTRL_NO_OPT_OCTET = 1  # Protocol constant from Wireshark
+            PAYLOAD_TYPE_CTRL_NO_OPT_OCTET = (
+                1  # Protocol constant from Wireshark
+            )
             packet = bytes(
-                [PAYLOAD_TYPE_CTRL_NO_OPT_OCTET << 6, *signalling_message[:length]]
+                [
+                    PAYLOAD_TYPE_CTRL_NO_OPT_OCTET << 6,
+                    *signalling_message[:length],
+                ]
             )
 
             is_uplink = not bool(channel_type & 0x80)
@@ -272,7 +307,7 @@ class PcapDumper(DecodedSibsDumper):
 
             if gsmtap_channel_type is None:
                 warning(
-                    "Unknown log type received for LOG_GPRS_MAC_SIGNALLING_MESSAGE_C: %d"
+                    'Unknown log type received for LOG_GPRS_MAC_SIGNALLING_MESSAGE_C: %d'
                     % channel_type
                 )
                 return
@@ -282,7 +317,7 @@ class PcapDumper(DecodedSibsDumper):
             )
 
         elif log_type == LOG_LTE_RRC_OTA_MSG_LOG_C:  # 0xb0c0
-            self.current_rat = "4g"
+            self.current_rat = '4g'
 
             # Interesting structures are defined:
             # - By MobileInsight here: https://github.com/mobile-insight/mobileinsight-core/blob/v3.2.0/dm_collector_c/log_packet.h#L200
@@ -290,8 +325,11 @@ class PcapDumper(DecodedSibsDumper):
 
             # Parse base header
 
-            (ext_header_ver, rrc_rel, rrc_ver, bearer_id, phy_cellid), ext_header = (
-                unpack("<BBBBH", log_payload[:6]),
+            (
+                (ext_header_ver, rrc_rel, rrc_ver, bearer_id, phy_cellid),
+                ext_header,
+            ) = (
+                unpack('<BBBBH', log_payload[:6]),
                 log_payload[6:],
             )
 
@@ -306,18 +344,20 @@ class PcapDumper(DecodedSibsDumper):
                         phy_cellid,
                     ),
                     ext_header,
-                ) = unpack("<BBBHBH", log_payload[:8]), log_payload[8:]
+                ) = unpack('<BBBHBH', log_payload[:8]), log_payload[8:]
 
             # Parse extended header
 
-            freq_type = "H" if ext_header_ver < 8 else "I"
+            freq_type = 'H' if ext_header_ver < 8 else 'I'
 
-            header_spec = "<" + freq_type + "HBH"
+            header_spec = '<' + freq_type + 'HBH'
 
-            if unpack_from("<H", ext_header, calcsize(header_spec) - 2)[0] != len(
-                ext_header
-            ) - calcsize(header_spec):  # SIB mask is present
-                header_spec = "<" + freq_type + "HB4xH"
+            if unpack_from('<H', ext_header, calcsize(header_spec) - 2)[
+                0
+            ] != len(ext_header) - calcsize(
+                header_spec
+            ):  # SIB mask is present
+                header_spec = '<' + freq_type + 'HB4xH'
 
             (freq, sfn, channel_type, length), packet = (
                 unpack_from(header_spec, ext_header),
@@ -418,7 +458,7 @@ class PcapDumper(DecodedSibsDumper):
 
             if gsmtap_channel_type is None:
                 warning(
-                    "Unknown log type received for LOG_LTE_RRC_OTA_MSG_LOG_C version %d: %d"
+                    'Unknown log type received for LOG_LTE_RRC_OTA_MSG_LOG_C version %d: %d'
                     % (ext_header_ver, channel_type)
                 )
                 return
@@ -438,7 +478,7 @@ class PcapDumper(DecodedSibsDumper):
             (
                 (ext_header_ver, rrc_rel, rrc_ver_minor, rrc_ver_major),
                 signalling_message,
-            ) = unpack("<BBBB", log_payload[:4]), log_payload[4:]
+            ) = unpack('<BBBB', log_payload[:4]), log_payload[4:]
 
             is_uplink = log_type in (
                 LOG_LTE_NAS_ESM_OTA_OUT_MSG_LOG_C,
@@ -446,10 +486,15 @@ class PcapDumper(DecodedSibsDumper):
             )
 
             packet = build_gsmtap_ip(
-                GSMTAP_TYPE_LTE_NAS, GSMTAP_LTE_NAS_PLAIN, signalling_message, is_uplink
+                GSMTAP_TYPE_LTE_NAS,
+                GSMTAP_LTE_NAS_PLAIN,
+                signalling_message,
+                is_uplink,
             )
 
-        elif self.include_ip_traffic and log_type in _DPL_LOG_TYPES:  # DPL user-plane data
+        elif (
+            self.include_ip_traffic and log_type in _DPL_LOG_TYPES
+        ):  # DPL user-plane data
             # DPL header (8 bytes):
             #   [0-1] version/flags
             #   [2-3] IFname (DPL capture point inside the baseband)
@@ -481,7 +526,7 @@ class PcapDumper(DecodedSibsDumper):
                 st[0].extend(data)
             else:
                 debug(
-                    "[DPL] Out-of-sequence fragment (ifname=0x%04x, seq=0x%02x, expected=0x%02x), dropping"
+                    '[DPL] Out-of-sequence fragment (ifname=0x%04x, seq=0x%02x, expected=0x%02x), dropping'
                     % (ifname, seq_num, st[1] if st[1] is not None else -1)
                 )
                 st[0] = bytearray()
@@ -513,7 +558,7 @@ class PcapDumper(DecodedSibsDumper):
                     packet = packet[:ip_total_len]
             else:
                 debug(
-                    "[DPL] Reassembled packet not valid IP (first_byte=0x%02x)"
+                    '[DPL] Reassembled packet not valid IP (first_byte=0x%02x)'
                     % packet[0]
                 )
                 return
@@ -531,7 +576,7 @@ class PcapDumper(DecodedSibsDumper):
                 del self._dpl_seen_hashes[:16]
 
             debug(
-                "[DPL] IPv%d packet: %d bytes (ifname=0x%04x)"
+                '[DPL] IPv%d packet: %d bytes (ifname=0x%04x)'
                 % (ip_version, len(packet), ifname)
             )
 
@@ -539,14 +584,14 @@ class PcapDumper(DecodedSibsDumper):
             log_type == LOG_UMTS_NAS_OTA_MESSAGE_LOG_PACKET_C
         ):  # 0x713a - 2G/3G DTAP from NAS
             if (
-                self.current_rat != "2g"
+                self.current_rat != '2g'
             ):  # Not needed in 3G, where this is already embedded in RRC
                 return
 
             # Header source: https://github.com/mobile-insight/mobileinsight-core/blob/v3.2.0/dm_collector_c/log_packet.h#L274
 
             (is_uplink, length), signalling_message = (
-                unpack("<BI", log_payload[:5]),
+                unpack('<BI', log_payload[:5]),
                 log_payload[5:],
             )
 
@@ -555,13 +600,18 @@ class PcapDumper(DecodedSibsDumper):
             is_uplink = bool(is_uplink)
 
             packet = build_gsmtap_ip(
-                GSMTAP_TYPE_ABIS, GSMTAP_CHANNEL_SDCCH, signalling_message, is_uplink
+                GSMTAP_TYPE_ABIS,
+                GSMTAP_CHANNEL_SDCCH,
+                signalling_message,
+                is_uplink,
             )
 
-        elif log_type == LOG_NR_RRC_OTA_MSG_LOG_C:  # LOG_NR_RRC_OTA_MSG_LOG_C = 0xb821
+        elif (
+            log_type == LOG_NR_RRC_OTA_MSG_LOG_C
+        ):  # LOG_NR_RRC_OTA_MSG_LOG_C = 0xb821
             # WIP
 
-            self.current_rat = "5g"
+            self.current_rat = '5g'
 
             packet = build_nr_rrc_log_ip(log_payload)
 
@@ -569,7 +619,7 @@ class PcapDumper(DecodedSibsDumper):
             try:
                 self.pcap_file.write(
                     pack(
-                        "<IIII",
+                        '<IIII',
                         int(timestamp),
                         int((timestamp * 1000000) % 1000000),
                         len(packet),
@@ -584,7 +634,9 @@ class PcapDumper(DecodedSibsDumper):
         # Also write a reassembled 3G SIB if present
 
         if self.reassemble_sibs:
-            DecodedSibsDumper.on_log(self, log_type, log_payload, log_header, timestamp)
+            DecodedSibsDumper.on_log(
+                self, log_type, log_payload, log_header, timestamp
+            )
 
     """
         Callback to the be called by the inherited "DecodedSibsDumper" class
@@ -595,54 +647,56 @@ class PcapDumper(DecodedSibsDumper):
         can't when embedded into RRC frames).
     """
 
-    def on_decoded_sib(self, sib_type, sib_dict, sib_bytes, rrc_sfn, timestamp):
+    def on_decoded_sib(
+        self, sib_type, sib_dict, sib_bytes, rrc_sfn, timestamp
+    ):
 
         packet = sib_bytes
 
         is_uplink = False
 
         gsmtap_channel_type = {
-            "masterInformationBlock": GSMTAP_RRC_SUB_MasterInformationBlock,
-            "systemInformationBlockType1": GSMTAP_RRC_SUB_SysInfoType1,
-            "systemInformationBlockType2": GSMTAP_RRC_SUB_SysInfoType2,
-            "systemInformationBlockType3": GSMTAP_RRC_SUB_SysInfoType3,
-            "systemInformationBlockType4": GSMTAP_RRC_SUB_SysInfoType4,
-            "systemInformationBlockType5": GSMTAP_RRC_SUB_SysInfoType5,
-            "systemInformationBlockType6": GSMTAP_RRC_SUB_SysInfoType6,
-            "systemInformationBlockType7": GSMTAP_RRC_SUB_SysInfoType7,
-            "systemInformationBlockType11": GSMTAP_RRC_SUB_SysInfoType11,
-            "systemInformationBlockType12": GSMTAP_RRC_SUB_SysInfoType12,
-            "systemInformationBlockType13": GSMTAP_RRC_SUB_SysInfoType13,
-            "systemInformationBlockType13-1": GSMTAP_RRC_SUB_SysInfoType13_1,
-            "systemInformationBlockType13-2": GSMTAP_RRC_SUB_SysInfoType13_2,
-            "systemInformationBlockType13-3": GSMTAP_RRC_SUB_SysInfoType13_3,
-            "systemInformationBlockType13-4": GSMTAP_RRC_SUB_SysInfoType13_4,
-            "systemInformationBlockType14": GSMTAP_RRC_SUB_SysInfoType14,
-            "systemInformationBlockType15": GSMTAP_RRC_SUB_SysInfoType15,
-            "systemInformationBlockType15-1": GSMTAP_RRC_SUB_SysInfoType15_1,
-            "systemInformationBlockType15-2": GSMTAP_RRC_SUB_SysInfoType15_2,
-            "systemInformationBlockType15-3": GSMTAP_RRC_SUB_SysInfoType15_3,
-            "systemInformationBlockType16": GSMTAP_RRC_SUB_SysInfoType16,
-            "systemInformationBlockType17": GSMTAP_RRC_SUB_SysInfoType17,
-            "systemInformationBlockType15-4": GSMTAP_RRC_SUB_SysInfoType15_4,
-            "systemInformationBlockType18": GSMTAP_RRC_SUB_SysInfoType18,
-            "schedulingBlock1": GSMTAP_RRC_SUB_SysInfoTypeSB1,
-            "schedulingBlock2": GSMTAP_RRC_SUB_SysInfoTypeSB2,
-            "systemInformationBlockType15-5": GSMTAP_RRC_SUB_SysInfoType15_5,
-            "systemInformationBlockType5bis": GSMTAP_RRC_SUB_SysInfoType5bis,
-            "systemInfoType11bis": GSMTAP_RRC_SUB_SysInfoType11bis,
-            "systemInfoType15bis": GSMTAP_RRC_SUB_SysInfoType15bis,
-            "systemInfoType15-1bis": GSMTAP_RRC_SUB_SysInfoType15_1bis,
-            "systemInfoType15-2bis": GSMTAP_RRC_SUB_SysInfoType15_2bis,
-            "systemInfoType15-3bis": GSMTAP_RRC_SUB_SysInfoType15_3bis,
-            "systemInfoType15-6": GSMTAP_RRC_SUB_SysInfoType15_6,
-            "systemInfoType15-7": GSMTAP_RRC_SUB_SysInfoType15_7,
-            "systemInfoType15-8": GSMTAP_RRC_SUB_SysInfoType15_8,
-            "systemInfoType19": GSMTAP_RRC_SUB_SysInfoType19,
-            "systemInfoType15-2ter": GSMTAP_RRC_SUB_SysInfoType15_2ter,
-            "systemInfoType20": GSMTAP_RRC_SUB_SysInfoType20,
-            "systemInfoType21": GSMTAP_RRC_SUB_SysInfoType21,
-            "systemInfoType22": GSMTAP_RRC_SUB_SysInfoType22,
+            'masterInformationBlock': GSMTAP_RRC_SUB_MasterInformationBlock,
+            'systemInformationBlockType1': GSMTAP_RRC_SUB_SysInfoType1,
+            'systemInformationBlockType2': GSMTAP_RRC_SUB_SysInfoType2,
+            'systemInformationBlockType3': GSMTAP_RRC_SUB_SysInfoType3,
+            'systemInformationBlockType4': GSMTAP_RRC_SUB_SysInfoType4,
+            'systemInformationBlockType5': GSMTAP_RRC_SUB_SysInfoType5,
+            'systemInformationBlockType6': GSMTAP_RRC_SUB_SysInfoType6,
+            'systemInformationBlockType7': GSMTAP_RRC_SUB_SysInfoType7,
+            'systemInformationBlockType11': GSMTAP_RRC_SUB_SysInfoType11,
+            'systemInformationBlockType12': GSMTAP_RRC_SUB_SysInfoType12,
+            'systemInformationBlockType13': GSMTAP_RRC_SUB_SysInfoType13,
+            'systemInformationBlockType13-1': GSMTAP_RRC_SUB_SysInfoType13_1,
+            'systemInformationBlockType13-2': GSMTAP_RRC_SUB_SysInfoType13_2,
+            'systemInformationBlockType13-3': GSMTAP_RRC_SUB_SysInfoType13_3,
+            'systemInformationBlockType13-4': GSMTAP_RRC_SUB_SysInfoType13_4,
+            'systemInformationBlockType14': GSMTAP_RRC_SUB_SysInfoType14,
+            'systemInformationBlockType15': GSMTAP_RRC_SUB_SysInfoType15,
+            'systemInformationBlockType15-1': GSMTAP_RRC_SUB_SysInfoType15_1,
+            'systemInformationBlockType15-2': GSMTAP_RRC_SUB_SysInfoType15_2,
+            'systemInformationBlockType15-3': GSMTAP_RRC_SUB_SysInfoType15_3,
+            'systemInformationBlockType16': GSMTAP_RRC_SUB_SysInfoType16,
+            'systemInformationBlockType17': GSMTAP_RRC_SUB_SysInfoType17,
+            'systemInformationBlockType15-4': GSMTAP_RRC_SUB_SysInfoType15_4,
+            'systemInformationBlockType18': GSMTAP_RRC_SUB_SysInfoType18,
+            'schedulingBlock1': GSMTAP_RRC_SUB_SysInfoTypeSB1,
+            'schedulingBlock2': GSMTAP_RRC_SUB_SysInfoTypeSB2,
+            'systemInformationBlockType15-5': GSMTAP_RRC_SUB_SysInfoType15_5,
+            'systemInformationBlockType5bis': GSMTAP_RRC_SUB_SysInfoType5bis,
+            'systemInfoType11bis': GSMTAP_RRC_SUB_SysInfoType11bis,
+            'systemInfoType15bis': GSMTAP_RRC_SUB_SysInfoType15bis,
+            'systemInfoType15-1bis': GSMTAP_RRC_SUB_SysInfoType15_1bis,
+            'systemInfoType15-2bis': GSMTAP_RRC_SUB_SysInfoType15_2bis,
+            'systemInfoType15-3bis': GSMTAP_RRC_SUB_SysInfoType15_3bis,
+            'systemInfoType15-6': GSMTAP_RRC_SUB_SysInfoType15_6,
+            'systemInfoType15-7': GSMTAP_RRC_SUB_SysInfoType15_7,
+            'systemInfoType15-8': GSMTAP_RRC_SUB_SysInfoType15_8,
+            'systemInfoType19': GSMTAP_RRC_SUB_SysInfoType19,
+            'systemInfoType15-2ter': GSMTAP_RRC_SUB_SysInfoType15_2ter,
+            'systemInfoType20': GSMTAP_RRC_SUB_SysInfoType20,
+            'systemInfoType21': GSMTAP_RRC_SUB_SysInfoType21,
+            'systemInfoType22': GSMTAP_RRC_SUB_SysInfoType22,
         }[sib_type]
 
         packet = build_gsmtap_ip(
@@ -654,7 +708,7 @@ class PcapDumper(DecodedSibsDumper):
         try:
             self.pcap_file.write(
                 pack(
-                    "<IIII",
+                    '<IIII',
                     int(timestamp),
                     int((timestamp * 1000000) % 1000000),
                     len(packet),
@@ -672,7 +726,7 @@ class PcapDumper(DecodedSibsDumper):
 
     def __del__(self):
 
-        if getattr(self, "pcap_file", None):
+        if getattr(self, 'pcap_file', None):
             self.pcap_file.close()
 
 
@@ -683,23 +737,25 @@ class PcapDumper(DecodedSibsDumper):
 
 
 class WiresharkLive(PcapDumper):
-    def __init__(self, diag_input, reassemble_sibs, decrypt_nas, include_ip_traffic):
+    def __init__(
+        self, diag_input, reassemble_sibs, decrypt_nas, include_ip_traffic
+    ):
 
         wireshark = (
-            which("C:\\Program Files\\Wireshark\\Wireshark.exe")
-            or which("C:\\Program Files (x86)\\Wireshark\\Wireshark.exe")
-            or which("wireshark")
-            or which("wireshark-gtk")
+            which('C:\\Program Files\\Wireshark\\Wireshark.exe')
+            or which('C:\\Program Files (x86)\\Wireshark\\Wireshark.exe')
+            or which('wireshark')
+            or which('wireshark-gtk')
         )
 
         if not wireshark:
-            raise Exception("Could not find Wireshark in $PATH")
+            raise Exception('Could not find Wireshark in $PATH')
 
         if not IS_UNIX:
             self.detach_process = None
 
         wireshark_pipe = Popen(
-            [wireshark, "-k", "-i", "-"],
+            [wireshark, '-k', '-i', '-'],
             stdin=PIPE,
             stdout=DEVNULL,
             stderr=STDOUT,
@@ -710,7 +766,11 @@ class WiresharkLive(PcapDumper):
         wireshark_pipe.appending_to_file = False
 
         super().__init__(
-            diag_input, wireshark_pipe, reassemble_sibs, decrypt_nas, include_ip_traffic
+            diag_input,
+            wireshark_pipe,
+            reassemble_sibs,
+            decrypt_nas,
+            include_ip_traffic,
         )
 
     """
@@ -726,7 +786,7 @@ class WiresharkLive(PcapDumper):
 
             # Drop privileges if needed
 
-            uid, gid = getenv("SUDO_UID"), getenv("SUDO_GID")
+            uid, gid = getenv('SUDO_UID'), getenv('SUDO_GID')
 
             if uid and gid:
                 uid, gid = int(uid), int(gid)

@@ -28,37 +28,39 @@ class MvCommand(BaseEfsShellCommand):
     ) -> ArgumentParser:
 
         argument_parser = subparsers_object.add_parser(
-            "mv",
-            description="Rename or move a given file or directory in the remote EFS.",
+            'mv',
+            description='Rename or move a given file or directory in the remote EFS.',
         )
 
-        argument_parser.add_argument("remote_src")
-        argument_parser.add_argument("remote_dst")
+        argument_parser.add_argument('remote_src')
+        argument_parser.add_argument('remote_dst')
 
         return argument_parser
 
     def execute_command(self, diag_input, args: Namespace):
-        if self.fs_type == "efs":
-            subsys_code = (
-                DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
-            )
-        elif self.fs_type == "efs2":
+        if self.fs_type == 'efs':
+            subsys_code = DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
+        elif self.fs_type == 'efs2':
             subsys_code = DIAG_SUBSYS_FS_ALTERNATE
         else:
-            raise ValueError("Invalid filesystem type specified.")
+            raise ValueError('Invalid filesystem type specified.')
         # Rename the target path
 
         opcode, payload = diag_input.send_recv(
             DIAG_SUBSYS_CMD_F,
             pack(
-                "<BH",
+                '<BH',
                 subsys_code,  # Command subsystem number
                 EFS2_DIAG_RENAME,
             )
-            + args.remote_src.encode("latin1").decode("unicode_escape").encode("latin1")
-            + b"\x00"
-            + args.remote_dst.encode("latin1").decode("unicode_escape").encode("latin1")
-            + b"\x00",
+            + args.remote_src.encode('latin1')
+            .decode('unicode_escape')
+            .encode('latin1')
+            + b'\x00'
+            + args.remote_dst.encode('latin1')
+            .decode('unicode_escape')
+            .encode('latin1')
+            + b'\x00',
             accept_error=True,
         )
 
@@ -69,11 +71,11 @@ class MvCommand(BaseEfsShellCommand):
             )
             return
 
-        (cmd_subsystem_id, subcommand_code, errno) = unpack("<BHi", payload)
+        (cmd_subsystem_id, subcommand_code, errno) = unpack('<BHi', payload)
 
         if errno:
             print(
-                "Error executing RENAME: %s"
+                'Error executing RENAME: %s'
                 % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
             )
             return

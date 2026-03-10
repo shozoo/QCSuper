@@ -27,32 +27,32 @@ class StatCommand(BaseEfsShellCommand):
     ) -> ArgumentParser:
 
         argument_parser = subparsers_object.add_parser(
-            "stat",
-            description="View meta-information about a given file or directory in the remote EFS filesystem.",
+            'stat',
+            description='View meta-information about a given file or directory in the remote EFS filesystem.',
         )
 
-        argument_parser.add_argument("path", nargs="?", default="/")
+        argument_parser.add_argument('path', nargs='?', default='/')
 
         return argument_parser
 
     def execute_command(self, diag_input, args: Namespace):
-        if self.fs_type == "efs":
-            subsys_code = (
-                DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
-            )
-        elif self.fs_type == "efs2":
+        if self.fs_type == 'efs':
+            subsys_code = DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
+        elif self.fs_type == 'efs2':
             subsys_code = DIAG_SUBSYS_FS_ALTERNATE
         else:
-            raise ValueError("Invalid filesystem type specified.")
+            raise ValueError('Invalid filesystem type specified.')
         encoded_path: bytes = (
-            args.path.encode("latin1").decode("unicode_escape").encode("latin1")
-            + b"\x00"
+            args.path.encode('latin1')
+            .decode('unicode_escape')
+            .encode('latin1')
+            + b'\x00'
         )
 
         opcode, payload = diag_input.send_recv(
             DIAG_SUBSYS_CMD_F,
             pack(
-                "<BH",
+                '<BH',
                 subsys_code,  # Command subsystem number,
                 EFS2_DIAG_STAT,
             )
@@ -60,7 +60,7 @@ class StatCommand(BaseEfsShellCommand):
             accept_error=True,
         )
 
-        readdir_struct = "<BHI8i"
+        readdir_struct = '<BHI8i'
 
         (
             cmd_subsystem_id,
@@ -72,11 +72,11 @@ class StatCommand(BaseEfsShellCommand):
             atime,
             mtime,
             ctime,
-        ) = unpack("<BH7i", payload)
+        ) = unpack('<BH7i', payload)
 
         if errno:
             print(
-                "Error executing STAT: %s"
+                'Error executing STAT: %s'
                 % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
             )
             return
@@ -90,17 +90,19 @@ class StatCommand(BaseEfsShellCommand):
 
         special_flags: List[str] = []
         if mode & 0o4000:
-            special_flags.append("(setuid)")  # S_ISUID - Set UID on execution.
+            special_flags.append('(setuid)')  # S_ISUID - Set UID on execution.
         if mode & 0o2000:
-            special_flags.append("(setgid)")  # S_ISGID - Set GID on execution.
+            special_flags.append('(setgid)')  # S_ISGID - Set GID on execution.
         if mode & 0o1000:
             special_flags.append(
-                "(sticky)"
+                '(sticky)'
             )  # S_ISVTX - Sticky (HIDDEN attribute in HFAT)
 
-        file_rights = ""
+        file_rights = ''
         for shift in range(8, -1, -1):  # (1<<8) == 0o400, ...
-            file_rights += "rwx"[(8 - shift) % 3] if (mode & (1 << shift)) else "-"
+            file_rights += (
+                'rwx'[(8 - shift) % 3] if (mode & (1 << shift)) else '-'
+            )
 
         # Resolve the symbolic file of the concerned file if needed
 
@@ -110,7 +112,7 @@ class StatCommand(BaseEfsShellCommand):
             opcode, payload = diag_input.send_recv(
                 DIAG_SUBSYS_CMD_F,
                 pack(
-                    "<BH",
+                    '<BH',
                     subsys_code,  # Command subsystem number,
                     EFS2_DIAG_READLINK,
                 )
@@ -118,19 +120,21 @@ class StatCommand(BaseEfsShellCommand):
                 accept_error=False,
             )
 
-            readlink_struct = "<BHI"
+            readlink_struct = '<BHI'
 
             (cmd_subsystem_id, subcommand_code, errno) = unpack(
                 readlink_struct, payload[: calcsize(readlink_struct)]
             )
 
             real_path = (
-                payload[calcsize(readlink_struct) :].rstrip(b"\x00").decode("latin1")
+                payload[calcsize(readlink_struct) :]
+                .rstrip(b'\x00')
+                .decode('latin1')
             )
 
             if errno:
                 print(
-                    "Error executing READLINK: %s"
+                    'Error executing READLINK: %s'
                     % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
                 )
                 return
@@ -138,26 +142,26 @@ class StatCommand(BaseEfsShellCommand):
         print()
 
         for row, value in {
-            "File type": EFS2_FILE_TYPES[mode & 0o170000],
-            "Special flags": " ".join(special_flags),
-            "File rights": file_rights,
-            "File name": repr(args.path)
-            + ((" -> " + repr(real_path)) if real_path else ""),
-            "Number of entries" if mode & 0o170000 == 0o040000 else "File size": str(
-                size
-            ),  # Directory (S_IFDIR)
-            "Number of links on the filesystem": str(num_links),
-            "Modification time": datetime.fromtimestamp(mtime).strftime(
-                "%Y-%m-%d %H:%M:%S"
+            'File type': EFS2_FILE_TYPES[mode & 0o170000],
+            'Special flags': ' '.join(special_flags),
+            'File rights': file_rights,
+            'File name': repr(args.path)
+            + ((' -> ' + repr(real_path)) if real_path else ''),
+            'Number of entries'
+            if mode & 0o170000 == 0o040000
+            else 'File size': str(size),  # Directory (S_IFDIR)
+            'Number of links on the filesystem': str(num_links),
+            'Modification time': datetime.fromtimestamp(mtime).strftime(
+                '%Y-%m-%d %H:%M:%S'
             ),
-            "Access time": datetime.fromtimestamp(atime).strftime(
-                "%Y-%m-%d %H:%M:%S"
+            'Access time': datetime.fromtimestamp(atime).strftime(
+                '%Y-%m-%d %H:%M:%S'
             ),  # Was taking too much horizontal space
-            "Creation time": datetime.fromtimestamp(ctime).strftime(
-                "%Y-%m-%d %H:%M:%S"
+            'Creation time': datetime.fromtimestamp(ctime).strftime(
+                '%Y-%m-%d %H:%M:%S'
             ),
         }.items():
             if value:
-                print(" - %s: %s" % (row, value))
+                print(' - %s: %s' % (row, value))
 
         print()

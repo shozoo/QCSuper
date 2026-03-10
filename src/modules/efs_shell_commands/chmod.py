@@ -28,38 +28,36 @@ class ChmodCommand(BaseEfsShellCommand):
     ) -> ArgumentParser:
 
         argument_parser = subparsers_object.add_parser(
-            "chmod",
-            description="This will change the permissions of a file, link or directory present on the remote EFS, according to arguments.",
+            'chmod',
+            description='This will change the permissions of a file, link or directory present on the remote EFS, according to arguments.',
         )
 
         argument_parser.add_argument(
-            "--set-file-type",
-            help="Possible values: S_IFIFO (FIFO), S_IFCHR (character device), S_IFDIR (directory), S_IFBLK (block device), S_IFREG (regular file), S_IFLNK (symbolic link), S_IFSOCK (socket), S_IFITM (item file)",
+            '--set-file-type',
+            help='Possible values: S_IFIFO (FIFO), S_IFCHR (character device), S_IFDIR (directory), S_IFBLK (block device), S_IFREG (regular file), S_IFLNK (symbolic link), S_IFSOCK (socket), S_IFITM (item file)',
         )
-        argument_parser.add_argument("--set-suid", action="store_true")
-        argument_parser.add_argument("--unset-suid", action="store_true")
-        argument_parser.add_argument("--set-sgid", action="store_true")
-        argument_parser.add_argument("--unset-sgid", action="store_true")
-        argument_parser.add_argument("--set-sticky", action="store_true")
-        argument_parser.add_argument("--unset-sticky", action="store_true")
+        argument_parser.add_argument('--set-suid', action='store_true')
+        argument_parser.add_argument('--unset-suid', action='store_true')
+        argument_parser.add_argument('--set-sgid', action='store_true')
+        argument_parser.add_argument('--unset-sgid', action='store_true')
+        argument_parser.add_argument('--set-sticky', action='store_true')
+        argument_parser.add_argument('--unset-sticky', action='store_true')
         argument_parser.add_argument(
-            "octal_perms", help="UNIX permissions, for example: 666"
+            'octal_perms', help='UNIX permissions, for example: 666'
         )
         argument_parser.add_argument(
-            "file_path", help="For example: /policyman/post.xml"
+            'file_path', help='For example: /policyman/post.xml'
         )
 
         return argument_parser
 
     def execute_command(self, diag_input, args: Namespace):
-        if self.fs_type == "efs":
-            subsys_code = (
-                DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
-            )
-        elif self.fs_type == "efs2":
+        if self.fs_type == 'efs':
+            subsys_code = DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
+        elif self.fs_type == 'efs2':
             subsys_code = DIAG_SUBSYS_FS_ALTERNATE
         else:
-            raise ValueError("Invalid filesystem type specified.")
+            raise ValueError('Invalid filesystem type specified.')
 
         try:
             assert int(args.octal_perms, 8) & ~0o777 == 0
@@ -75,12 +73,14 @@ class ChmodCommand(BaseEfsShellCommand):
         opcode, payload = diag_input.send_recv(
             DIAG_SUBSYS_CMD_F,
             pack(
-                "<BH",
+                '<BH',
                 subsys_code,  # Command subsystem number
                 EFS2_DIAG_STAT,
             )
-            + args.file_path.encode("latin1").decode("unicode_escape").encode("latin1")
-            + b"\x00",
+            + args.file_path.encode('latin1')
+            .decode('unicode_escape')
+            .encode('latin1')
+            + b'\x00',
             accept_error=True,
         )
 
@@ -101,11 +101,11 @@ class ChmodCommand(BaseEfsShellCommand):
             atime,
             mtime,
             ctime,
-        ) = unpack("<BH7i", payload)
+        ) = unpack('<BH7i', payload)
 
         if errno:
             print(
-                "Error executing STAT: %s"
+                'Error executing STAT: %s'
                 % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
             )
             return
@@ -119,21 +119,21 @@ class ChmodCommand(BaseEfsShellCommand):
             S_IFMT = 0o170000  # Mask of all values
 
             file_type_value = {
-                "S_IFIFO": 0o010000,
-                "S_IFCHR": 0o020000,
-                "S_IFDIR": 0o040000,
-                "S_IFBLK": 0o060000,
-                "S_IFREG": 0o100000,
-                "S_IFLNK": 0o120000,
-                "S_IFSOCK": 0o140000,
-                "S_IFITM": 0o160000,
+                'S_IFIFO': 0o010000,
+                'S_IFCHR': 0o020000,
+                'S_IFDIR': 0o040000,
+                'S_IFBLK': 0o060000,
+                'S_IFREG': 0o100000,
+                'S_IFLNK': 0o120000,
+                'S_IFSOCK': 0o140000,
+                'S_IFITM': 0o160000,
             }.get(args.set_file_type.upper())
 
             if not file_type_value:
                 print(
                     (
                         'Error: "%s" is not a valid file type, please see '
-                        + "the command help for details"
+                        + 'the command help for details'
                     )
                     % args.set_file_type
                 )
@@ -159,13 +159,15 @@ class ChmodCommand(BaseEfsShellCommand):
         opcode, payload = diag_input.send_recv(
             DIAG_SUBSYS_CMD_F,
             pack(
-                "<BHH",
+                '<BHH',
                 subsys_code,  # Command subsystem number
                 EFS2_DIAG_CHMOD,
                 file_mode,
             )
-            + args.file_path.encode("latin1").decode("unicode_escape").encode("latin1")
-            + b"\x00",
+            + args.file_path.encode('latin1')
+            .decode('unicode_escape')
+            .encode('latin1')
+            + b'\x00',
             accept_error=True,
         )
 
@@ -176,11 +178,11 @@ class ChmodCommand(BaseEfsShellCommand):
             )
             return
 
-        (cmd_subsystem_id, subcommand_code, errno) = unpack("<BHi", payload)
+        (cmd_subsystem_id, subcommand_code, errno) = unpack('<BHi', payload)
 
         if errno:
             print(
-                "Error executing CHMOD: %s"
+                'Error executing CHMOD: %s'
                 % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
             )
             return

@@ -52,7 +52,7 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
 
         # <Implement Parser of USB-device syntax END>
 
-        if platform not in ("win32", "cygwin"):
+        if platform not in ('win32', 'cygwin'):
             # Try to access the device
 
             if not exists(device):
@@ -72,7 +72,9 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
 
         # Initialize the serial device
 
-        self.serial = Serial(port=device, baudrate=115200, rtscts=True, dsrdtr=True)
+        self.serial = Serial(
+            port=device, baudrate=115200, rtscts=True, dsrdtr=True
+        )
 
         self.device = device
 
@@ -85,18 +87,20 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
         # Try to detect another process which may interfere with the Diag port,
         # propose to terminate it when it is present
 
-        if exists("/proc"):
-            for pid in filter(str.isdigit, listdir("/proc")):
-                cmdline_path = "/proc/%s/cmdline" % pid
-                fds_dir = "/proc/%s/fd" % pid
+        if exists('/proc'):
+            for pid in filter(str.isdigit, listdir('/proc')):
+                cmdline_path = '/proc/%s/cmdline' % pid
+                fds_dir = '/proc/%s/fd' % pid
 
                 try:
                     with open(cmdline_path) as cmdline_fd:
-                        proc_name = cmdline_fd.read().replace("\x00", " ").strip()
+                        proc_name = (
+                            cmdline_fd.read().replace('\x00', ' ').strip()
+                        )
 
                     if (
-                        "modemmanager" not in proc_name.lower()
-                        and "qc" not in proc_name.lower()
+                        'modemmanager' not in proc_name.lower()
+                        and 'qc' not in proc_name.lower()
                     ):
                         continue
 
@@ -106,7 +110,7 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
                                 'The process "%s" may possibly be interfering with '
                                 + "QCSuper, however it can't be confirmed because "
                                 + "you're not root. Please re-run with sudo to "
-                                + "take appropriate action."
+                                + 'take appropriate action.'
                             )
                             % proc_name
                         )
@@ -114,9 +118,9 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
                         exit()
 
                     for fd in listdir(fds_dir):
-                        if realpath(fds_dir + "/" + fd) == self.device:
+                        if realpath(fds_dir + '/' + fd) == self.device:
                             if (
-                                "modemmanager" in proc_name.lower()
+                                'modemmanager' in proc_name.lower()
                                 and try_handle_modemmanager
                             ):
                                 self.handle_modemmanager_interference()
@@ -128,11 +132,11 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
                                 return
 
                             if (
-                                "y"
+                                'y'
                                 in input(
                                     (
                                         'The process "%s" is already connected to "%s", do '
-                                        + "you want to kill it? [y/n] "
+                                        + 'you want to kill it? [y/n] '
                                     )
                                     % (proc_name, self.device)
                                 ).lower()
@@ -143,7 +147,7 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
 
                             else:
                                 error(
-                                    "Cannot connect on the Diag port at the same time"
+                                    'Cannot connect on the Diag port at the same time'
                                 )
                                 exit()
 
@@ -154,92 +158,111 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
 
         # Try to handle ModemManager interference by adding an udev rule
 
-        if which("udevadm") and which("systemctl") and which("ModemManager"):
+        if which('udevadm') and which('systemctl') and which('ModemManager'):
             try:
-                makedirs("/run/udev/rules.d", exist_ok=True)
+                makedirs('/run/udev/rules.d', exist_ok=True)
 
                 self.udev_rule_file_path = (
-                    "/run/udev/rules.d/99-qcsuper-blacklist-%s.rules"
+                    '/run/udev/rules.d/99-qcsuper-blacklist-%s.rules'
                     % basename(self.device)
                 )
 
-                with open(self.udev_rule_file_path, "w") as udev_rule:
+                with open(self.udev_rule_file_path, 'w') as udev_rule:
                     udev_rule.write(
                         'KERNEL=="%s", ENV{ID_MM_PORT_IGNORE}="1"\n'
                         % basename(self.device)
                     )
 
-                run(["udevadm", "control", "--reload-rules"], check=True)
-                run(["udevadm", "trigger", "--name-match=" + self.device], check=True)
+                run(['udevadm', 'control', '--reload-rules'], check=True)
+                run(
+                    ['udevadm', 'trigger', '--name-match=' + self.device],
+                    check=True,
+                )
 
                 try:
                     if (
                         run(
-                            ["systemctl", "--quiet", "is-active", "ModemManager"]
+                            [
+                                'systemctl',
+                                '--quiet',
+                                'is-active',
+                                'ModemManager',
+                            ]
                         ).returncode
                         == 0
                     ):
-                        run(["systemctl", "restart", "ModemManager"], check=True)
+                        run(
+                            ['systemctl', 'restart', 'ModemManager'],
+                            check=True,
+                        )
 
                 except CalledProcessError:
                     warning(
-                        "Note: cannot restart the ModemManager daemon "
-                        + "through systemd"
+                        'Note: cannot restart the ModemManager daemon '
+                        + 'through systemd'
                     )
 
                 warning(
-                    "Note: cooperation with ModemManager was enabled "
-                    + "through adding a temporary udev rule. This udev "
-                    + "rule will be automatically removed when quitting "
-                    + "QCSuper."
+                    'Note: cooperation with ModemManager was enabled '
+                    + 'through adding a temporary udev rule. This udev '
+                    + 'rule will be automatically removed when quitting '
+                    + 'QCSuper.'
                 )
 
             except (OSError, CalledProcessError) as error:
                 if geteuid() != 0:
                     error(
-                        "ModemManager is running on this system, and "
-                        + "QCSuper needs to add a temporary udev rule to "
-                        + "enable cooperation with it on the Diag port.\n\n"
-                        + "Please either: \n"
-                        + "- Run this command as root so that QCSuper can "
-                        + "add the temporary udev rule.\n"
-                        + "- Alternatively, stop ModemManager."
+                        'ModemManager is running on this system, and '
+                        + 'QCSuper needs to add a temporary udev rule to '
+                        + 'enable cooperation with it on the Diag port.\n\n'
+                        + 'Please either: \n'
+                        + '- Run this command as root so that QCSuper can '
+                        + 'add the temporary udev rule.\n'
+                        + '- Alternatively, stop ModemManager.'
                     )
 
                     exit()
 
                 else:
                     warning(
-                        "Cannot dynamically create an udev rule for preventing "
-                        + "ModemManager to access the Diag port:",
+                        'Cannot dynamically create an udev rule for preventing '
+                        + 'ModemManager to access the Diag port:',
                         error,
                     )
 
     def __del__(self):
 
         try:
-            if hasattr(self, "udev_rule_file_path") and exists(
+            if hasattr(self, 'udev_rule_file_path') and exists(
                 self.udev_rule_file_path
             ):
                 remove(self.udev_rule_file_path)
 
-                run(["udevadm", "control", "--reload-rules"], check=True)
-                run(["udevadm", "trigger", "--name-match=" + self.device], check=True)
+                run(['udevadm', 'control', '--reload-rules'], check=True)
+                run(
+                    ['udevadm', 'trigger', '--name-match=' + self.device],
+                    check=True,
+                )
 
                 if (
                     run(
-                        ["systemctl", "--quiet", "is-active", "ModemManager"]
+                        ['systemctl', '--quiet', 'is-active', 'ModemManager']
                     ).returncode
                     == 0
                 ):
-                    Popen(["systemctl", "restart", "ModemManager"], preexec_fn=setpgrp)
+                    Popen(
+                        ['systemctl', 'restart', 'ModemManager'],
+                        preexec_fn=setpgrp,
+                    )
 
         except Exception:
             pass
 
     def send_request(self, packet_type, packet_payload):
 
-        raw_payload = self.hdlc_encapsulate(bytes([packet_type]) + packet_payload)
+        raw_payload = self.hdlc_encapsulate(
+            bytes([packet_type]) + packet_payload
+        )
 
         self.serial.write(raw_payload)
 
@@ -248,7 +271,7 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
         while True:
             # Read more bytes until a trailer character is found
 
-            raw_payload = b""
+            raw_payload = b''
 
             while not raw_payload.endswith(self.TRAILER_CHAR):
                 try:
@@ -257,7 +280,7 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
 
                 except Exception:
                     error(
-                        "\nThe serial port was closed or preempted by another process."
+                        '\nThe serial port was closed or preempted by another process.'
                     )
 
                     exit()
@@ -267,7 +290,7 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
             # Decapsulate and dispatch
 
             if raw_payload == self.TRAILER_CHAR:
-                error("The modem seems to be unavailable.")
+                error('The modem seems to be unavailable.')
 
                 exit()
 

@@ -28,23 +28,21 @@ class Md5sumCommand(BaseEfsShellCommand):
     ) -> ArgumentParser:
 
         argument_parser = subparsers_object.add_parser(
-            "md5sum",
-            description="Obtain a MD5 checksum of the desired file, for a given path.",
+            'md5sum',
+            description='Obtain a MD5 checksum of the desired file, for a given path.',
         )
 
-        argument_parser.add_argument("path")
+        argument_parser.add_argument('path')
 
         return argument_parser
 
     def execute_command(self, diag_input, args: Namespace):
-        if self.fs_type == "efs":
-            subsys_code = (
-                DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
-            )
-        elif self.fs_type == "efs2":
+        if self.fs_type == 'efs':
+            subsys_code = DIAG_SUBSYS_FS  # Assuming DIAG_SUBSYS_FS is the code for primary
+        elif self.fs_type == 'efs2':
             subsys_code = DIAG_SUBSYS_FS_ALTERNATE
         else:
-            raise ValueError("Invalid filesystem type specified.")
+            raise ValueError('Invalid filesystem type specified.')
         # Obtain the file checksum
 
         sequence_number = randint(0, 0xFFFF)
@@ -52,13 +50,15 @@ class Md5sumCommand(BaseEfsShellCommand):
         opcode, payload = diag_input.send_recv(
             DIAG_SUBSYS_CMD_F,
             pack(
-                "<BHH",
+                '<BHH',
                 subsys_code,  # Command subsystem number
                 EFS2_DIAG_MKDIR,
                 sequence_number,
             )
-            + args.path.encode("latin1").decode("unicode_escape").encode("latin1")
-            + b"\x00",
+            + args.path.encode('latin1')
+            .decode('unicode_escape')
+            .encode('latin1')
+            + b'\x00',
             accept_error=True,
         )
 
@@ -69,7 +69,7 @@ class Md5sumCommand(BaseEfsShellCommand):
             )
             return
 
-        md5sum_spec = "<BHHi"
+        md5sum_spec = '<BHHi'
 
         (cmd_subsystem_id, subcommand_code, sequence_number, errno) = unpack(
             md5sum_spec, payload[: calcsize(md5sum_spec)]
@@ -79,7 +79,7 @@ class Md5sumCommand(BaseEfsShellCommand):
 
         if errno:
             print(
-                "Error executing MD5SUM: %s"
+                'Error executing MD5SUM: %s'
                 % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
             )
             return

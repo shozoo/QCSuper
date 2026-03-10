@@ -13,24 +13,26 @@ from ._base_input import BaseInput
 class TcpConnector(HdlcMixin, BaseInput):
     def __init__(self, args):
 
-        address, port = args.split(":")
+        address, port = args.split(':')
         self.socket = socket(AF_INET, SOCK_STREAM)
 
         try:
             self.socket.connect((address, int(port)))
 
         except Exception:
-            error("Could not communicate with the DIAG device through TCP")
+            error('Could not communicate with the DIAG device through TCP')
             exit()
 
         self.received_first_packet = False
 
-        self.packet_buffer = b""
+        self.packet_buffer = b''
 
         super().__init__()
 
     def send_request(self, packet_type, packet_payload):
-        raw_payload = self.hdlc_encapsulate(bytes([packet_type]) + packet_payload)
+        raw_payload = self.hdlc_encapsulate(
+            bytes([packet_type]) + packet_payload
+        )
 
         self.socket.send(raw_payload)
 

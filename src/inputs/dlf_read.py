@@ -45,7 +45,7 @@ class DlfReader(BaseInput):
             if not log_header:
                 exit(0)
 
-            log_length, log_type, log_time = unpack("<HHQ", log_header)
+            log_length, log_type, log_time = unpack('<HHQ', log_header)
 
             log_data = self.dlf_file.read(log_length - 12)
 
@@ -68,4 +68,6 @@ class DlfReader(BaseInput):
                 Dispatch the log frame to modules.
             """
 
-            self.dispatch_diag_log(log_type, log_data, log_header, self.timestamp)
+            self.dispatch_diag_log(
+                log_type, log_data, log_header, self.timestamp
+            )

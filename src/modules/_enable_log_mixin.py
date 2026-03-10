@@ -80,38 +80,39 @@ class EnableLogMixin:
         # each existing log type (see defintions above).
 
         opcode, payload = self.diag_input.send_recv(
-            DIAG_LOG_CONFIG_F, pack("<3xI", LOG_CONFIG_RETRIEVE_ID_RANGES_OP)
+            DIAG_LOG_CONFIG_F, pack('<3xI', LOG_CONFIG_RETRIEVE_ID_RANGES_OP)
         )
 
-        header_spec = "<3xII"
+        header_spec = '<3xII'
         operation, status = unpack_from(header_spec, payload)
 
         assert operation == LOG_CONFIG_RETRIEVE_ID_RANGES_OP
 
         if status != LOG_CONFIG_SUCCESS_S:
             warning(
-                "Warning: log operation %d resulted in status %d" % (operation, status)
+                'Warning: log operation %d resulted in status %d'
+                % (operation, status)
             )
 
-        log_masks = unpack_from("<16I", payload, calcsize(header_spec))
+        log_masks = unpack_from('<16I', payload, calcsize(header_spec))
 
         # Iterate on information contained in the packet for each log type
 
         log_types = {
-            0x1: "1X",
-            0x4: "WCDMA",
-            0x5: "GSM",
-            0x6: "LBS",
-            0x7: "UMTS",
-            0x8: "TDMA",
-            0xA: "DTV",
-            0xB: "APPS/LTE/WIMAX",
-            0xC: "DSP",
-            0xD: "TDSCDMA",
-            0xF: "TOOLS",
+            0x1: '1X',
+            0x4: 'WCDMA',
+            0x5: 'GSM',
+            0x6: 'LBS',
+            0x7: 'UMTS',
+            0x8: 'TDMA',
+            0xA: 'DTV',
+            0xB: 'APPS/LTE/WIMAX',
+            0xC: 'DSP',
+            0xD: 'TDSCDMA',
+            0xF: 'TOOLS',
         }
 
-        information_string = "Enabled logging for: "
+        information_string = 'Enabled logging for: '
 
         for log_type, log_mask_bitsize in enumerate(log_masks):
             # Register logging for each supported log type
@@ -123,7 +124,12 @@ class EnableLogMixin:
 
                 opcode, payload = self.diag_input.send_recv(
                     DIAG_LOG_CONFIG_F,
-                    pack("<3xIII", LOG_CONFIG_SET_MASK_OP, log_type, log_mask_bitsize)
+                    pack(
+                        '<3xIII',
+                        LOG_CONFIG_SET_MASK_OP,
+                        log_type,
+                        log_mask_bitsize,
+                    )
                     + log_mask,
                 )
 
@@ -133,20 +139,20 @@ class EnableLogMixin:
 
                 if status != LOG_CONFIG_SUCCESS_S:
                     warning(
-                        "Warning: log operation %d resulted in status %d"
+                        'Warning: log operation %d resulted in status %d'
                         % (operation, status)
                     )
 
-                information_string += "%s (%d), " % (
-                    log_types.get(log_type, "UNKNOWN"),
+                information_string += '%s (%d), ' % (
+                    log_types.get(log_type, 'UNKNOWN'),
                     log_type,
                 )
 
-        info(information_string.strip(", "))
+        info(information_string.strip(', '))
 
     def _fill_log_mask(self, log_type, num_bits, bit_value=1):
 
-        log_mask = b""
+        log_mask = b''
 
         current_byte = 0
         num_bits_written = 0
@@ -160,12 +166,14 @@ class EnableLogMixin:
             # bulk of data sent from the device to the Diag client.
 
             if (
-                hasattr(self, "limit_registered_logs")
+                hasattr(self, 'limit_registered_logs')
                 and ((log_type << 12) | i) not in self.limit_registered_logs
             ):
                 enable_this_log_type = False
 
-            current_byte |= (bit_value & enable_this_log_type) << num_bits_written
+            current_byte |= (
+                bit_value & enable_this_log_type
+            ) << num_bits_written
             num_bits_written += 1
 
             if num_bits_written == 8 or i == num_bits - 1:
@@ -179,12 +187,19 @@ class EnableLogMixin:
     def on_deinit(self):
 
         for log_type, log_mask_bitsize in getattr(
-            self, "log_type_to_mask_bitsize", {}
+            self, 'log_type_to_mask_bitsize', {}
         ).items():
-            log_mask = self._fill_log_mask(log_type, log_mask_bitsize, bit_value=0)
+            log_mask = self._fill_log_mask(
+                log_type, log_mask_bitsize, bit_value=0
+            )
 
             self.diag_input.send_recv(
                 DIAG_LOG_CONFIG_F,
-                pack("<3xIII", LOG_CONFIG_SET_MASK_OP, log_type, log_mask_bitsize)
+                pack(
+                    '<3xIII',
+                    LOG_CONFIG_SET_MASK_OP,
+                    log_type,
+                    log_mask_bitsize,
+                )
                 + log_mask,
             )
