@@ -4,7 +4,7 @@
 
 It will allow you to **generate PCAP** captures of it using either a rooted Android phone, an USB dongle or an existing capture in another format.
 
-![Screenshot of using QCSuper along with Wireshark](docs/sample_pcaps/Wireshark%20screenshot.png?raw=true)
+![Screenshot of using QCSuper along with Wireshark](https://raw.githubusercontent.com/P1sec/QCSuper/master/docs/sample_pcaps/Wireshark%20screenshot.png?raw=true)
 
 After having [installed](#installation) it, you can plug your rooted phone in USB and using it, with a compatible device, is as simple as:
 
@@ -41,8 +41,8 @@ It uses the Qualcomm Diag protocol, also called QCDM or DM (Diagnostic Monitor) 
 
 **More documentation:**
 
-* [The Diag protocol](docs/The%20Diag%20protocol.md)
-* [QCSuper architecture](docs/QCSuper%20architecture.md)
+* [The Diag protocol](https://github.com/P1sec/QCSuper/blob/master/docs/The%20Diag%20protocol.md)
+* [QCSuper architecture](https://github.com/P1sec/QCSuper/blob/master/docs/QCSuper%20architecture.md)
 
 ## Installation
 
@@ -125,7 +125,7 @@ Still in your command prompt, move to the directory containing QCSuper using the
 As noted above, it is possible that you have to add a `libusb-win32` filter through the utility available in the Start Menu in order to ensure that the interface corresponding to the Diag port is visible by QCSuper on the mode-switched device (a first failed attempt to run the tool using the `--adb` flag should trigger a mode-switch if the ADB driver is working and the device is correctly rooted).
 
 <p align="center">
-<img src="docs/Adding%20libusb-win32%20filter.png?raw=true" alt="Screenshot of adding a libusb-win32 filter for the Diag port of a Mi phone">
+<img src="https://raw.githubusercontent.com/P1sec/QCSuper/master/docs/Adding%20libusb-win32%20filter.png?raw=true" alt="Screenshot of adding a libusb-win32 filter for the Diag port of a Mi phone">
 </p>
 
 ## Supported protocols

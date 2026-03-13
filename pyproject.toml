@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qcsuper"
-version = "2.1.0"
+version = "2.1.0.post1"
 description = "QCSuper is a tool communicating with Qualcomm-based phones and modems, allowing to capture raw 2G/3G/4G radio frames, among other things"
 readme = "README.md"
 license = "GPL-3.0-or-later"
