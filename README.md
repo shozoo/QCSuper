@@ -46,13 +46,13 @@ It uses the Qualcomm Diag protocol, also called QCDM or DM (Diagnostic Monitor) 
 
 ## Installation
 
-QCSuper was lately tested and developed on Ubuntu LTS 22.04+ and also has been used over Windows 11. It depends on a few Python modules. It is advised to use Linux for better compatibility.
+QCSuper was lately tested and developed on **Ubuntu LTS 22.04+** and also has been used over Windows 11. It depends on a few Python modules. It is advised to use Linux for better compatibility.
 
-To use it, your phone must be rooted or expose a diag service port over USB. In order to check for compatibility with your phone, look up the phone's model on a site like [GSMArena](https://www.gsmarena.com/) and check whether it has a Qualcomm processor.
+To use it, **your phone must be rooted** or expose a diag service port over USB. In order to check for compatibility with your phone, look up the phone's model on a site like [GSMArena](https://www.gsmarena.com/) and check whether it has a Qualcomm processor.
 
 In order to open PCAP files produced by QCSuper, you can use any Wireshark 2.x - 4.x for 2G/3G frames, but you need at least Wireshark 2.5.x for 4G frames (and 2.6.x for individual NAS messages decrypted out of 4G frames). Ubuntu currently provides a recent enough build for all versions.
 
-Decoding 5G frames was tested under Wireshark 3.6.x and will be done through automatically installing a Wireshark Lua plug-in (in `%APPDATA%\Wireshark\plugins` under Windows or in `~/.local/lib/wireshark/plugins` under Linux and macOS), which can be avoided through setting the `DONT_INSTALL_WIRESHARK_PLUGIN=1` environment variable if you are willing to avoid this.
+Decoding 5G frames was tested under **Wireshark 3.6.x and above** and will be done through automatically installing a Wireshark Lua plug-in (in `%APPDATA%\Wireshark\plugins` under Windows or in `~/.local/lib/wireshark/plugins` under Linux and macOS), which can be avoided through setting the `DONT_INSTALL_WIRESHARK_PLUGIN=1` environment variable if you are willing to avoid this.
 
 ### Linux installation (modern, UV)
 
@@ -112,7 +112,7 @@ In order to install the development version in a specific folder, open a termina
 
 ```bash
 # Download QCSuper
-git clone https://github.com/P1sec/QCSuper.git qcsuper
+git clone https://github.com/P1sec/qcsuper
 cd qcsuper
 
 # Install dependencies
@@ -182,10 +182,10 @@ A few commands you can type are:
 ```bash
 # Open Wireshark directly, using a rooted Android phone as an input,
 # for compatible phones:
-$ ./qcsuper.py --adb --wireshark-live
+$ qcsuper --adb --wireshark-live
 
 # Same, but dump to a PCAP file instead of opening Wireshark directly
-$ ./qcsuper.py --adb --pcap-dump /tmp/my_pcap.pcap
+$ qcsuper --adb --pcap-dump /tmp/my_pcap.pcap
 ```
 
 Or, if it is not simple enough to work:
