@@ -8,14 +8,14 @@ It will allow you to **generate PCAP** captures of it using either a rooted Andr
 
 After having [installed](#installation) it, you can plug your rooted phone in USB and using it, with a compatible device, is as simple as:
 
-```
-./qcsuper.py --adb --wireshark-live
+```bash
+qcsuper --adb --wireshark-live
 ```
 
 Or, if you have manually enabled exposing a Diag port over your phone (the corresponding procedure may vary depending on your phone modem and manufacturer, see below for more explanations), or if you have plugged a mobile broadband dongle:
 
-```
-./qcsuper.py --usb-modem auto --wireshark-live
+```bash
+qcsuper --usb-modem auto --wireshark-live
 ```
 
 It uses the Qualcomm Diag protocol, also called QCDM or DM (Diagnostic Monitor) in order to communicate with your phone's baseband.
@@ -106,7 +106,7 @@ sudo apt install python3-pip wireshark
 sudo pip3 install --upgrade qcsuper --break-system-packages
 ```
 
-Then, you can just type `qcsuper` in your terminal to run QCSuper. (Use this anywhere in place of where `./qcsuper.py` is written below.)
+Then, you can just type `qcsuper` in your terminal to run QCSuper.
 
 In order to install the development version in a specific folder, open a terminal and type the following:
 
@@ -117,7 +117,7 @@ cd qcsuper
 
 # Install dependencies
 sudo apt install python3-pip wireshark
-sudo pip3 install --upgrade . --break-system-packages
+pip3 install --upgrade . --break-system-packages
 ```
 
 Then, run QCSuper from the `qcsuper/` directory, using the `./qcsuper.py` command in the terminal.
@@ -143,7 +143,7 @@ Then, follow these links (the tool has been tested lately on Windows 11 - it is 
 To install the required Python modules, open your command prompt and type:
 
 ```bash
-pip3 install --upgrade pyserial pyusb crcmod https://github.com/P1sec/pycrate/archive/master.zip https://github.com/pyocd/libusb-package/archive/master.zip
+pip3 install --upgrade pyserial pyusb crcmod pycrate https://github.com/pyocd/libusb-package/archive/master.zip
 ```
 
 Still in your command prompt, move to the directory containing QCSuper using the `cd` command. You can then execute commands (which should start with `py qcsuper.py` or `py3 qcsuper.py` if you installed Python 3 from the online installer, or `python3.exe .\qcsuper.py` if you installed it from the Windows Store).
@@ -201,27 +201,27 @@ Or, if it is not simple enough to work:
 #   how this may be possible with most Qualcomm-based models)
 #
 #   In this case, you may try:
-./qcsuper.py --usb-modem auto --wireshark-live
+$ qcsuper --usb-modem auto --wireshark-live
 #   Or, if selecting manually the USB device corresponding to the 
 #   Diag-enabled phone turns to be requried:
 $ lsusb
 (..)
 Bus 001 Device 076: ID 05c6:9091 Qualcomm, Inc. Intex Aqua Fish & Jolla C Diagnostic Mode
-$ ./qcsuper.py --usb-modem 1d6b:0003 --wireshark-live # With vendor ID:product ID...
-$ ./qcsuper.py --usb-modem 002:001 --wireshark-live # ...or with bus ID:device ID
+$ qcsuper --usb-modem 1d6b:0003 --wireshark-live # With vendor ID:product ID...
+$ qcsuper --usb-modem 002:001 --wireshark-live # ...or with bus ID:device ID
 # Or, if selecting the configuration number and interface number (referred as "bConfigurationValue" and "bInterfaceNumber" in the USB desciprtors) turn to be required:
 $ lsusb -v
 (..)
-$ ./qcsuper.py --usb-modem 1d6b:0003:1:0 --wireshark-live # With vendor ID:product ID:configuration:interface...
-$ ./qcsuper.py --usb-modem 002:001:1:0 --wireshark-live # ...or with bus ID:device ID:configuration:interface
+$ qcsuper --usb-modem 1d6b:0003:1:0 --wireshark-live # With vendor ID:product ID:configuration:interface...
+$ qcsuper --usb-modem 002:001:1:0 --wireshark-live # ...or with bus ID:device ID:configuration:interface
 
 # - With a generic serial-over-USB device where the "usbserial" module has
 #   loaded a /dev/ttyUSB{0-9} device corresponding to the diagnostic port:
-$ sudo ./qcsuper.py --usb-modem /dev/ttyUSB2 --wireshark-live
+$ qcsuper --usb-modem /dev/ttyUSB2 --wireshark-live
 
 # - With an Option device where the "hsoserial" module has loaded a
 #   /dev/ttyHS{0-9} device corresponding to the diagnostic port:
-$ sudo ./qcsuper.py --usb-modem /dev/ttyHS2 --wireshark-live
+$ qcsuper --usb-modem /dev/ttyHS2 --wireshark-live
 ```
 
 Here is the current usage notice for QCSuper:
