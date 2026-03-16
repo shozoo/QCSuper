@@ -77,7 +77,7 @@ cd qcsuper
 
 # Install dependencies
 sudo apt install python3-pip wireshark
-pip3 install --upgrade . --break-system-packages
+sudo pip3 install --upgrade . --break-system-packages
 ```
 
 Then, run QCSuper from the `qcsuper/` directory, using the `./qcsuper.py` command in the terminal.
