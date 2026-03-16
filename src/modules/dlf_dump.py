@@ -4,7 +4,7 @@ from ..modules._enable_log_mixin import EnableLogMixin
 from ..protocol.gsmtap import build_gsmtap_ip
 from ..protocol.log_types import *
 from struct import pack, unpack
-from logging import warn
+from logging import warning
 
 """
     This module registers various diag LOG events, and generated a raw DLF
@@ -25,7 +25,7 @@ class DlfDumper(EnableLogMixin):
 
         # print('X', hex(log_type), log_payload, log_header, timestamp)
         if unpack('<H', log_header[:2])[0] != len(log_header + log_payload):
-            warn(
+            warning(
                 'Dismissing log type 0x%04x, indicating size %d instead of %d'
                 % (
                     log_type,
