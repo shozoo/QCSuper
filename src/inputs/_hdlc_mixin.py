@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
 from struct import pack, unpack, unpack_from, calcsize
 from logging import debug, info, warning, error

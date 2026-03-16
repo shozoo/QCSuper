@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- encoding: Utf-8 -*-
 from threading import current_thread, main_thread, Thread
 from struct import pack, unpack, unpack_from, calcsize

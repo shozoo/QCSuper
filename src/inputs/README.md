@@ -9,7 +9,7 @@ Inputs are intended to be used by "modules", which are located in the [`modules/
 A simple template for implementing a new input could be:
 
 ```python
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #-*- encoding: Utf-8 -*-
 from .inputs._base_input import BaseInput
 

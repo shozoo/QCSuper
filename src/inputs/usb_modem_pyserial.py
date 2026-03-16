@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- encoding: Utf-8 -*-
 from subprocess import run, DEVNULL, PIPE, STDOUT, CalledProcessError
 from os import access, R_OK, W_OK, listdir, kill, makedirs, remove

@@ -9,7 +9,7 @@ Modules are included from the entry point, [`qcsuper.py`](../../qcsuper.py) and 
 A simple template for a module could be:
 
 ```python
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #-*- encoding: Utf-8 -*-
 from ..protocol.messages import *
 

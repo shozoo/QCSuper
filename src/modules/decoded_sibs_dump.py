@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- encoding: Utf-8 -*-
 from pycrate_core.utils import pack_val, TYPE_UINT
 from collections import defaultdict, namedtuple

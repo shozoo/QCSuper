@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- encoding: Utf-8 -*-
 from os.path import dirname, realpath
 from unittest import TestCase

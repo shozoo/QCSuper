@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- encoding: Utf-8 -*-
 from argparse import ArgumentParser, _SubParsersAction, Namespace
 from typing import Dict, List, Set, Sequence, Optional

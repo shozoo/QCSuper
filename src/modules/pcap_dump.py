@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- encoding: Utf-8 -*-
 from struct import pack, unpack, unpack_from, calcsize
 from subprocess import Popen, PIPE, DEVNULL, STDOUT

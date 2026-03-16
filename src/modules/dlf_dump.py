@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- encoding: Utf-8 -*-
 from ..modules._enable_log_mixin import EnableLogMixin
 from ..protocol.gsmtap import build_gsmtap_ip
