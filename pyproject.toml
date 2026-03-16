@@ -52,6 +52,7 @@ packages = [
     "qcsuper.protocol",
     "qcsuper.modules",
     "qcsuper.modules.efs_shell_commands",
+    "qcsuper.modules.wireshark_plugin"
 ]
 
 [tool.setuptools.package-data]
@@ -60,7 +61,7 @@ packages = [
 "qcsuper.inputs.external" = ["*"]
 "qcsuper.inputs.external.adb" = ["*"]
 "qcsuper.inputs.external.adb.lib64" = ["*"]
-"qcsuper.modules" = ["wireshark_plugin/*"]
+"qcsuper.modules.wireshark_plugin" = ["*"]
 
 [tool.ruff]
 line-length = 79
