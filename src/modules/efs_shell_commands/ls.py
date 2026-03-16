@@ -287,4 +287,3 @@ class LsCommand(BaseEfsShellCommand):
                     'Error executing CLOSEDIR: %s'
                     % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
                 )
-                return

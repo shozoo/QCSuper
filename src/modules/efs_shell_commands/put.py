@@ -194,4 +194,3 @@ class PutCommand(BaseEfsShellCommand):
                         'Error executing CLOSE: %s'
                         % (EFS2_ERROR_CODES.get(errno) or strerror(errno))
                     )
-                    return
