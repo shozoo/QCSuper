@@ -25,7 +25,7 @@ It uses the Qualcomm Diag protocol, also called QCDM or DM (Diagnostic Monitor) 
 ## Table of contents
 
 * **[Installation](#installation)**
-  * [Linux installation (modern, UV)](#linux-installation-modern-uv)
+  * [Linux installation (recommended, UV)](#linux-installation-recommended-uv)
   * [Linux installation (legacy, PIP)](#linux-installation-legacy-pip)
   * [Windows installation](#ubuntu-and-debian-installation)
 * [Supported protocols](#supported-protocols)
@@ -54,7 +54,7 @@ In order to open PCAP files produced by QCSuper, you can use any Wireshark 2.x -
 
 Decoding 5G frames was tested under **Wireshark 3.6.x and above** and will be done through automatically installing a Wireshark Lua plug-in (in `%APPDATA%\Wireshark\plugins` under Windows or in `~/.local/lib/wireshark/plugins` under Linux and macOS), which can be avoided through setting the `DONT_INSTALL_WIRESHARK_PLUGIN=1` environment variable if you are willing to avoid this.
 
-### Linux installation (modern, UV)
+### Linux installation (recommended, UV)
 
 On Linux, it is recommended to install QCSuper using the [`uv`](https://docs.astral.sh/uv/) package manager which is a modern alternative to PIP.
 
