@@ -113,7 +113,7 @@ You can then just type this into your terminal:
 qcsuper
 ```
 
-However, if you need to run `qcsuper` as `root`, for example because you are reading data from a modem device, `qcsuper` may not be in `$PATH` when using `uv` with `sudo` so this may require to something such as:
+However, if you need to run `qcsuper` as `root`, for example because you are reading data from a modem device, `qcsuper` may not be in `$PATH` when using `uv` with `sudo` so this may require to do something such as:
 
 ```bash
 sudo $(which qcsuper)
