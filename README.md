@@ -25,8 +25,8 @@ It uses the Qualcomm Diag protocol, also called QCDM or DM (Diagnostic Monitor) 
 ## Table of contents
 
 * **[Installation](#installation)**
-  * [Linux installation (recommended, UV)](#linux-installation-recommended-uv)
-  * [Linux installation (legacy, PIP)](#linux-installation-legacy-pip)
+  * [Linux installation (PIP)](#linux-installation-pip)
+  * [Linux installation (UV)](#linux-installation-uv)
   * [Windows installation](#ubuntu-and-debian-installation)
 * [Supported protocols](#supported-protocols)
 * **[Usage notice](#usage-notice)**
@@ -54,47 +54,7 @@ In order to open PCAP files produced by QCSuper, you can use any Wireshark 2.x -
 
 Decoding 5G frames was tested under **Wireshark 3.6.x and above** and will be done through automatically installing a Wireshark Lua plug-in (in `%APPDATA%\Wireshark\plugins` under Windows or in `~/.local/lib/wireshark/plugins` under Linux and macOS), which can be avoided through setting the `DONT_INSTALL_WIRESHARK_PLUGIN=1` environment variable if you are willing to avoid this.
 
-### Linux installation (recommended, UV)
-
-On Linux, it is recommended to install QCSuper using the [`uv`](https://docs.astral.sh/uv/) package manager which is a modern alternative to PIP.
-
-First, run one of these commands in your terminal in order to install `uv`:
-
-```bash
-sudo snap install --classic astral-uv # On Ubuntu
-sudo dnf install -y uv # On Fedora
-sudo pacman -S uv # On Archlinux, Manjaro
-curl -LsSf https://astral.sh/uv/install.sh | sh # On Debian and others
-```
-
-Then, run this to install the latest stable version:
-
-```bash
-uv tool install qcsuper
-```
-
-You can then just type this into your terminal:
-
-```bash
-qcsuper
-```
-
-Alternatively, you can install the latest development version using this command:
-
-```bash
-uv tool install git+https://github.com/P1sec/qcsuper
-```
-
-Or use this command in order to download the source, then create symbolic links to QCSuper into `~/.local/bin` towards the source directory:
-
-```bash
-git clone https://github.com/P1sec/qcsuper
-cd qcsuper
-uv sync # Create .venv in the current directory
-uv tool install -e . # Create symlinks into ~/.local/bin
-```
-
-### Linux installation (legacy, PIP)
+### Linux installation (PIP)
 
 In order to install the stable version of QCSuper system-wide from PyPI, you can run these commands:
 
@@ -121,6 +81,52 @@ pip3 install --upgrade . --break-system-packages
 ```
 
 Then, run QCSuper from the `qcsuper/` directory, using the `./qcsuper.py` command in the terminal.
+
+### Linux installation (UV)
+
+On Linux, you can to install QCSuper using the [`uv`](https://docs.astral.sh/uv/) package manager which is a modern alternative to PIP.
+
+First, run one of these commands in your terminal in order to install `uv`:
+
+```bash
+sudo snap install --classic astral-uv # On Ubuntu
+sudo dnf install -y uv # On Fedora
+sudo pacman -S uv # On Archlinux, Manjaro
+curl -LsSf https://astral.sh/uv/install.sh | sh # On Debian and others
+```
+
+Then, run this to install the latest stable version:
+
+```bash
+uv tool install qcsuper
+```
+
+Alternatively, you can install the latest development version using this command:
+
+```bash
+uv tool install git+https://github.com/P1sec/qcsuper
+```
+
+You can then just type this into your terminal:
+
+```bash
+qcsuper
+```
+
+However, if you need to run `qcsuper` as `root`, for example because you are reading data from a modem device, `qcsuper` may not be in `$PATH` when using `uv` with `sudo` so this may require to something such as:
+
+```bash
+sudo $(which qcsuper)
+```
+
+If you wish to participate to the development of the tool, you can use these commands in order to download the source, then create symbolic links to QCSuper into `~/.local/bin` towards the source directory:
+
+```bash
+git clone https://github.com/P1sec/qcsuper
+cd qcsuper
+uv sync # Create .venv in the current directory
+uv tool install -e . # Create symlinks into ~/.local/bin
+```
 
 ### Windows installation
 
