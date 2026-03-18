@@ -116,7 +116,7 @@ qcsuper
 However, if you need to run `qcsuper` as `root`, for example because you are reading data from a modem device, `qcsuper` may not be in `$PATH` when using `uv` with `sudo` so this may require to do something such as:
 
 ```bash
-sudo $(which qcsuper)
+sudo env "PATH=$PATH" qcsuper
 ```
 
 If you wish to participate to the development of the tool, you can use these commands in order to download the source, then create symbolic links to QCSuper into `~/.local/bin` towards the source directory:
