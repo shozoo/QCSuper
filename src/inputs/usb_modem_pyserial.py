@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
 # -*- encoding: Utf-8 -*-
+from os import (
+    access,
+    R_OK,
+    W_OK,
+    X_OK,
+    getenv,
+    listdir,
+    kill,
+    makedirs,
+    remove,
+)
 from subprocess import run, DEVNULL, PIPE, STDOUT, CalledProcessError
-from os import access, R_OK, W_OK, listdir, kill, makedirs, remove
 from logging import error, warning, info, debug
 from os.path import exists, realpath, basename
+from sys import platform, argv
 from subprocess import Popen
 from signal import SIGTERM
 from serial import Serial
 from shutil import which
-from sys import platform
 from time import sleep
 
 try:
@@ -18,9 +28,9 @@ except ImportError:
 
 
 try:
-    from os import geteuid
+    from os import geteuid, execlp
 except ImportError:
-    pass
+    geteuid = None
 
 from ._hdlc_mixin import HdlcMixin
 from ._base_input import BaseInput
@@ -45,12 +55,16 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
         UNIX, or "COM1" on Windows)
     """
 
+    def _try_escalate(self):
+        # Use root if non-root
+
+        if geteuid and geteuid() != 0:
+            for cmd in ['pkexec', 'sudo'] if getenv('DISPLAY') else ['sudo']:
+                if which(cmd) and access(which(cmd), X_OK):
+                    execlp(cmd, cmd, *argv)
+                    exit()
+
     def __init__(self, device):
-
-        # WIP
-        # <Implement Parser of USB-device syntax BEGIN>
-
-        # <Implement Parser of USB-device syntax END>
 
         if platform not in ('win32', 'cygwin'):
             # Try to access the device
@@ -60,6 +74,8 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
                 exit()
 
             elif not access(device, W_OK):
+                self._try_escalate()
+
                 error(
                     'Could not open "%s" for write, have you sufficient privileges?'
                     % device
@@ -105,6 +121,8 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
                         continue
 
                     if not access(fds_dir, R_OK):
+                        self._try_escalate()
+
                         error(
                             (
                                 'The process "%s" may possibly be interfering with '
@@ -210,7 +228,9 @@ class UsbModemPyserialConnector(HdlcMixin, BaseInput):
                 )
 
             except (OSError, CalledProcessError) as error:
-                if geteuid() != 0:
+                if geteuid and geteuid() != 0:
+                    self._try_escalate()
+
                     error(
                         'ModemManager is running on this system, and '
                         + 'QCSuper needs to add a temporary udev rule to '
