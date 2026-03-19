@@ -8,13 +8,13 @@ cd "$(dirname "$0")"
 
 PKGNAME="qcsuper"
 PKGVER="2.1.0.post2"
-PKGREL="1"
+PKGREL="2"
 
 # Needed to generate a .tar.gz that will contain a setup.py
 # file generated from our pyproject.toml located at
 # project root
 
-poetry build -f sdist
+# poetry build -f sdist
 
 for version in noble questing resolute; do # bionic focal jammy noble questing
 
