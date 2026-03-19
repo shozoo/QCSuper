@@ -4,11 +4,10 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "qcsuper"
-version = "2.1.0.post2"
+version = "2.1.0.post3"
 description = "QCSuper is a tool communicating with Qualcomm-based phones and modems, allowing to capture raw 2G/3G/4G radio frames, among other things"
 readme = "README.md"
-license = "GPL-3.0-or-later"
-license-files = ["LICENSE"]
+license = {file = "LICENSE"}
 authors = [{ name = "P1 Security - Marin Moulinier" }]
 maintainers = [{ name = "P1 Security - Marin Moulinier" }]
 keywords = ["pcap", "wireshark", "radio", "qcsuper", "capture analysis"]
