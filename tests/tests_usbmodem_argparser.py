@@ -10,7 +10,7 @@ import sys
 
 sys.path.insert(0, ROOT_DIR)
 
-from src.inputs.usb_modem_argparser import UsbModemArgParser, UsbModemArgType
+from src.qcsuper.inputs.usb_modem_argparser import UsbModemArgParser, UsbModemArgType
 
 """
     This file is an include file.
