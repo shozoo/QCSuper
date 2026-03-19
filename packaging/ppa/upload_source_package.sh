@@ -7,7 +7,7 @@ set -xe
 cd "$(dirname "$0")"
 
 PKGNAME="qcsuper"
-PKGVER="2.1.0.post4"
+PKGVER="2.1.1"
 PKGREL="1"
 
 PPA_DIR="$(pwd)"

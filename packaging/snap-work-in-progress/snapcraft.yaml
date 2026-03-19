@@ -6,8 +6,8 @@ issues: https://github.com/P1sec/QCSuper/issues
 source-code: https://github.com/P1sec/QCSuper
 website: https://www.p1sec.com/blog/presenting-qcsuper-a-tool-for-capturing-your-2g-3g-4g-air-traffic-on-qualcomm-based-phones
 base: core24 # the base snap is the execution environment for this snap
-version: '2.1.0' # just for humans, typically '1.2+git' or '1.3.2'
-summary: QCSuper is a tool communicating with Qualcomm-based phones and modems
+version: '2.1.1' # just for humans, typically '1.2+git' or '1.3.2'
+summary: Capture raw 2G/3G/4G frames using Qualcomm-based phones and modems
 description: |
   QCSuper is a tool communicating with Qualcomm-based phones and modems,
   allowing to capture raw 2G/3G/4G (and for certain models 5G) radio
