@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "qcsuper"
-version = "2.1.0.post3"
+version = "2.1.0.post4"
 description = "QCSuper is a tool communicating with Qualcomm-based phones and modems, allowing to capture raw 2G/3G/4G radio frames, among other things"
 readme = "README.md"
 license = {file = "LICENSE"}
